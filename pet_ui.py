@@ -6,6 +6,8 @@ class Pet():
         # Window 
         self.window = tk.Toplevel(master)
         
+        self.name = "Test"
+
         self.size_x = 600
         self.size_y = 600        
         self.x = x_pos
