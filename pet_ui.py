@@ -1,5 +1,6 @@
 import tkinter as tk
 import time
+import random
 
 class Pet():
     def __init__(self, master, x_pos=0, y_pos = 0):
@@ -7,13 +8,14 @@ class Pet():
         self.window = tk.Toplevel(master)
         
         self.name = "Test"
-
+        
         self.size_x = 600
         self.size_y = 600        
-        self.x = x_pos
-        self.y = y_pos
         
-        self.window.geometry(f'{self.size_x}x{self.size_y}-{self.x}-{self.y}') 
+        self.x = x_pos if x_pos < 0 else f'+{x_pos}'
+        self.y = y_pos if y_pos < 0 else f'+{y_pos}'
+        
+        self.window.geometry(f'{self.size_x}x{self.size_y}{self.x}{self.y}') 
         
         self.window.overrideredirect(True) # frameless
         self.window.attributes('-topmost', True) # draw over all others
@@ -44,7 +46,7 @@ class Pet():
     def update(self):
         
         # Movement
-        self.x += 0
+        self.x += random.randrange(-5,5)
         
         if time.time() > self.timestamp + self.animation_interval:
             self.timestamp = time.time()
@@ -52,7 +54,7 @@ class Pet():
             self.frame_index = (self.frame_index + 1) % self.total_frames
             self.img = self.walking_right[self.frame_index]
         
-        self.window.geometry(f'{self.size_x}x{self.size_y}-{self.x}-{self.y}') 
+        self.window.geometry(f'{self.size_x}x{self.size_y}{self.x}{self.y}') 
 
         self.label.configure(image=self.img)
         self.label.pack()
