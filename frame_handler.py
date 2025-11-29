@@ -1,1 +1,0 @@
-# Handles the images given and turn them into individual animation frames in the correct size
