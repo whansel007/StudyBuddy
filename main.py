@@ -1,5 +1,6 @@
 # Entry point and settings
 import tkinter as tk
+import json
 from tkinter import ttk, filedialog, colorchooser 
 from pathlib import Path
 from pet_class import pet
@@ -27,6 +28,16 @@ def pick_color(result, button):
         button.config(bg=color[1])
         print(result.get())
 
+def create_pet(pet_container, info_dict):
+    new_pet = pet(tk_root, info_dict)
+    pet_container.append(new_pet)
+
+def load_pet(pet_container):
+
+    create_pet(pet_container)
+
+    
+
 def launch_pet(pet_container):
     name = entry_name.get()
     pos_x, pos_y = (int(entry_pos_x.get()),int(entry_pos_y.get()))
@@ -47,8 +58,11 @@ def launch_pet(pet_container):
                                 (name, "walk")),
         "chroma_key": chromakey,
     }
-    new_pet = pet(tk_root, info_dict)
-    pet_container.append(new_pet)
+
+    save_path = Path(name) / f"{name}_({size_x}x{size_y}).json"
+    with open(save_path, "w", encoding="utf-8") as save_file:
+        json.dump(info_dict,save_file, indent=4)
+    create_pet(pet_container, info_dict)
 
 # List to hold pet instances
 list_pets = []

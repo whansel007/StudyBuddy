@@ -16,7 +16,8 @@ def resize(in_paths: list, size: tuple, out_folder: tuple) -> tuple:
         resized = frame.resize((x,y))
         export_path = export_dir / f"{animation}_{x}x{y}_({f}).png"
         resized.save(export_path, format="PNG")
-        out_paths.append(os.path.normpath(str(export_path)))
+        out_paths.append(str(export_path))
+        print(export_path)
     
     for i, src in enumerate(in_paths):
         with Image.open(src) as im:
