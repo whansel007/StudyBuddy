@@ -9,25 +9,25 @@ def resize(in_paths: list, size: tuple, out_folder: tuple) -> tuple:
     name, animation = out_folder
     x, y = size
     export_dir = Path(name) / animation
-    os.makedirs(str(export_dir), exist_ok=True)
+    os.makedirs(export_dir, exist_ok=True)
 
+    def export(f):
+        frame = im.convert("RGBA")
+        resized = frame.resize((x,y))
+        export_path = export_dir / f"{animation}_{x}x{y}_({f}).png"
+        resized.save(export_path, format="PNG")
+        out_paths.append(os.path.normpath(str(export_path)))
+    
     for i, src in enumerate(in_paths):
         with Image.open(src) as im:
             # If it is a GIF
             if hasattr(im,"n_frames"):
                 for f in range(im.n_frames):
                     im.seek(f)
-                    frame = im.convert("RGBA")
-                    resized = frame.resize((x,y))
-                    export_path = export_dir / f"{animation}_{x}x{y}_({f}).png"
-                    resized.save(export_path, format="PNG")
-                    out_paths.append(str(export_path))
+                    export(f)       
             # Everything else
             else:
                 im = im.convert("RGBA")
-                resized = im.resize((x,y))
-                export_path = export_dir / f"{animation}_{x}x{y}_({i}).png"
-                resized.save(export_path, format="PNG")
-                out_paths.append(str(export_path))
+                export(i)
 
     return tuple(out_paths)

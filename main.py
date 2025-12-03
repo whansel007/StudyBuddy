@@ -1,8 +1,7 @@
 # Entry point and settings
-
 import tkinter as tk
-from tkinter import ttk
-from tkinter import filedialog
+from tkinter import ttk, filedialog, colorchooser 
+from pathlib import Path
 from pet_class import pet
 from pet_spritehandler import resize
 
@@ -21,12 +20,18 @@ def pick_file(result: list,
             display.set("No files selected")
     print(result)
 
+def pick_color(result, button):
+    color = colorchooser.askcolor(color="#808080")
+    if color[1]:
+        result.set(color[1])
+        button.config(bg=color[1])
+        print(result.get())
 
 def launch_pet(pet_container):
     name = entry_name.get()
     pos_x, pos_y = (int(entry_pos_x.get()),int(entry_pos_y.get()))
     size_x, size_y = (int(entry_size_x.get()),int(entry_size_y.get()))
-
+    chromakey = str(var_chromakey_selection.get())
 
     info_dict = {
         "name": name,
@@ -34,18 +39,14 @@ def launch_pet(pet_container):
         "pos_y": pos_y,
         "size_x": size_x,
         "size_y": size_y,
-        "spites_idle": resize(ani_idle_paths, 
+        "sprites_idle": resize(ani_idle_paths,
                               (size_x, size_y),
                                 (name, "idle")),
-        "spites_walk": resize(ani_walk_paths, 
+        "sprites_walk": resize(ani_walk_paths,  
                               (size_x, size_y),
                                 (name, "walk")),
-        "state" : "idle",
-        "move_x": 0,
-        "move_y": 0,
-        "frame" : "",
+        "chroma_key": chromakey,
     }
-    print(info_dict)
     new_pet = pet(tk_root, info_dict)
     pet_container.append(new_pet)
 
@@ -99,20 +100,18 @@ frame_size.pack(pady=default_padding)
 # Animation
 frame_ani = ttk.Frame(master=tk_root)
 
-label_ani = ttk.Label(master=frame_ani, text="Animation Frames", font=bold_font)
+label_ani = ttk.Label(master=frame_ani, text="Animation Frames [PNG or  GIF]", font=bold_font)
 
 # Idle Animation
 ani_idle_paths = []
 var_ani_idle_selection = tk.StringVar(value="No file selected")
 
 frame_ani_idle = ttk.Frame(master=frame_ani)
-label_ani_idle = ttk.Label(master=frame_ani_idle, text="Idle Animation Frame(s): \n[PNG or  GIF]", font=default_font)
+label_ani_idle = ttk.Label(master=frame_ani_idle, text="Idle Animation Frame(s):", font=default_font)
 label_ani_idle_selection = ttk.Label(master=frame_ani_idle, textvariable=var_ani_idle_selection, font=default_font)
-button_ani_idle_select = ttk.Button(
-    master=frame_ani_idle,
-    command=lambda: pick_file(ani_idle_paths, var_ani_idle_selection),
-    text="Select Idle Sprites"
-)
+button_ani_idle_select = ttk.Button(master=frame_ani_idle,
+                                    command=lambda: pick_file(ani_idle_paths, var_ani_idle_selection),
+                                    text="Select Idle Sprites")
 
 label_ani.pack()
 label_ani_idle.pack()
@@ -124,13 +123,11 @@ ani_walk_paths = []
 var_ani_walk_selection = tk.StringVar(value="No file selected")
 
 frame_ani_walk = ttk.Frame(master=frame_ani)
-label_ani_walk = ttk.Label(master=frame_ani_walk, text="Walk Animation Frame(s) \n[PNG or  GIF]:", font=default_font)
+label_ani_walk = ttk.Label(master=frame_ani_walk, text="Walk Animation Frame(s):", font=default_font)
 label_ani_walk_selection = ttk.Label(master=frame_ani_walk, textvariable=var_ani_walk_selection, font=default_font)
-button_ani_walk_select = ttk.Button(
-    master=frame_ani_walk,
-    command=lambda: pick_file(ani_walk_paths, var_ani_walk_selection),
-    text="Select Walk Sprites"
-)
+button_ani_walk_select = ttk.Button(master=frame_ani_walk,
+                                    command=lambda: pick_file(ani_walk_paths, var_ani_walk_selection),
+                                    text="Select Walk Sprites")
 
 label_ani.pack()
 label_ani_walk.pack()
@@ -140,6 +137,22 @@ button_ani_walk_select.pack()
 frame_ani_idle.pack(pady=default_padding)
 frame_ani_walk.pack(pady=default_padding)
 frame_ani.pack(pady=default_padding)
+
+# Chromakey Entry
+var_chromakey_selection = tk.StringVar(value="#808080")
+
+frame_chromakey = ttk.Frame(master=tk_root)
+label_chromakey = ttk.Label(master=frame_chromakey, text="Outline Color [A color not on the sprite]", font=bold_font)
+label_chromakey_selection = ttk.Label(master=frame_chromakey, textvariable=var_chromakey_selection, font=default_font)
+button_chromakey = tk.Button(master=frame_chromakey,
+                             text="Pick Out Line Color",
+                             bg=var_chromakey_selection.get(),
+                             command=lambda: pick_color(var_chromakey_selection, button_chromakey))
+
+label_chromakey.pack()
+label_chromakey_selection.pack()
+button_chromakey.pack(pady=default_padding)
+frame_chromakey.pack(pady=default_padding)
 
 # Create pet button
 button_create_pet = ttk.Button(tk_root, text="Create Pet!", command=lambda: launch_pet(list_pets))

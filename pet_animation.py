@@ -1,3 +1,4 @@
-# A window containing which animation 
-# In a Tkinter app: open picker from a button callback
+# Return an image
 
+def get_current_image():
+    return 
