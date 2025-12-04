@@ -1,10 +1,11 @@
 # Entry point and settings
 import tkinter as tk
+import os
 import json
 from tkinter import ttk, filedialog, colorchooser 
 from pathlib import Path
-from pet_class import pet
-from pet_spritehandler import resize
+from pet_script.pet_class import pet
+from pet_script.pet_spritehandler import resize
 
 def pick_file(result: list,
               display=None,
@@ -32,10 +33,13 @@ def create_pet(pet_container, info_dict):
     new_pet = pet(tk_root, info_dict)
     pet_container.append(new_pet)
 
+
 def load_pet(pet_container):
-
-    create_pet(pet_container)
-
+    load_path = filedialog.askopenfilename(initialdir=os.getcwd())
+    with open(load_path, "r") as load_file:
+        info_dict = json.load(load_file)
+        print(info_dict)
+        create_pet(pet_container, info_dict)
     
 
 def launch_pet(pet_container):
@@ -57,11 +61,13 @@ def launch_pet(pet_container):
                               (size_x, size_y),
                                 (name, "walk")),
         "chroma_key": chromakey,
+        "prompt" : f"You are {name} and you are a desktop pet",
     }
 
     save_path = Path(name) / f"{name}_({size_x}x{size_y}).json"
     with open(save_path, "w", encoding="utf-8") as save_file:
         json.dump(info_dict,save_file, indent=4)
+    
     create_pet(pet_container, info_dict)
 
 # List to hold pet instances
@@ -170,7 +176,11 @@ frame_chromakey.pack(pady=default_padding)
 
 # Create pet button
 button_create_pet = ttk.Button(tk_root, text="Create Pet!", command=lambda: launch_pet(list_pets))
-button_create_pet.pack(pady=20)
+button_create_pet.pack(pady=10)
+
+# Create pet button
+button_load_pet = ttk.Button(tk_root, text="Load Pet!", command=lambda: load_pet(list_pets))
+button_load_pet.pack(pady=10)
 
 # Start the Tkinter event loop 
 tk_root.mainloop()

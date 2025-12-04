@@ -1,9 +1,9 @@
 # Define a pet class to be initialized
 import tkinter as tk
 import time
-from pet_statemachine import get_current_states
-from pet_movement import get_current_movement
-from pet_animation import get_current_image
+from pet_script.pet_statemachine import get_current_states
+from pet_script.pet_movement import get_current_movement
+from pet_script.pet_animation import get_current_image
 
 class pet():
     def __init__(self, master, info_dict:dict):
