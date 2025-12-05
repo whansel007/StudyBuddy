@@ -1,11 +1,10 @@
 # Entry point and settings
 import tkinter as tk
-import os
 import json
 from tkinter import ttk, filedialog, colorchooser 
 from pathlib import Path
-from pet_script.pet_class import pet
-from pet_script.pet_spritehandler import resize
+from script.pet.pet_class import pet
+from script.pet.pet_spritehandler import resize
 
 def pick_file(result: list,
               display=None,
@@ -33,9 +32,8 @@ def create_pet(pet_container, info_dict):
     new_pet = pet(tk_root, info_dict)
     pet_container.append(new_pet)
 
-
 def load_pet(pet_container):
-    load_path = filedialog.askopenfilename(initialdir=os.getcwd())
+    load_path = filedialog.askopenfilename(initialdir="pets")
     with open(load_path, "r") as load_file:
         info_dict = json.load(load_file)
         print(info_dict)
@@ -50,31 +48,42 @@ def launch_pet(pet_container):
 
     info_dict = {
         "name": name,
+        "prompt" : f"You are {name} and you are a desktop pet",
+        "screensize" : screensize, 
         "pos_x": pos_x,
         "pos_y": pos_y,
         "size_x": size_x,
         "size_y": size_y,
+        "speed_x": 100,
+        "speed_y": 100,
+        "idle_interval" : 3,
+        "idle_treshold" : (5,5),
+        "sprite_idleinterval" : 0.5,
         "sprites_idle": resize(ani_idle_paths,
                               (size_x, size_y),
                                 (name, "idle")),
+        "sprite_walkinterval" : 0.5,
         "sprites_walk": resize(ani_walk_paths,  
                               (size_x, size_y),
                                 (name, "walk")),
         "chroma_key": chromakey,
-        "prompt" : f"You are {name} and you are a desktop pet",
     }
 
-    save_path = Path(name) / f"{name}_({size_x}x{size_y}).json"
+    save_path = Path("pets") / name / f"{name}_({size_x}x{size_y}).json"
     with open(save_path, "w", encoding="utf-8") as save_file:
         json.dump(info_dict,save_file, indent=4)
     
     create_pet(pet_container, info_dict)
 
-# List to hold pet instances
+def get_screensize(window):
+    return (window.winfo_screenwidth(),window.winfo_screenheight())
+
+# Pet Container
 list_pets = []
 
 # Main window
 tk_root = tk.Tk()
+screensize = get_screensize(tk_root)
 tk_root.title("Settings")
 tk_root.geometry("600x600")
 
@@ -95,12 +104,15 @@ frame_name.pack(pady=default_padding)
 
 # Pos Entry
 frame_pos = ttk.Frame(master=tk_root)
+var_screen_size = tk.StringVar(value=screensize)
 
 label_pos = ttk.Label(master=frame_pos, text="Pet position (x,y):", font=bold_font)
+label_screensize = ttk.Label(master=frame_pos, textvariable=var_screen_size, font=default_font)
 entry_pos_x = ttk.Entry(master=frame_pos, font=default_font)
 entry_pos_y = ttk.Entry(master=frame_pos, font=default_font)
 
 label_pos.pack()
+label_screensize.pack()
 entry_pos_x.pack(side="left")
 entry_pos_y.pack(side="right")
 frame_pos.pack(pady=default_padding)
@@ -129,6 +141,7 @@ var_ani_idle_selection = tk.StringVar(value="No file selected")
 frame_ani_idle = ttk.Frame(master=frame_ani)
 label_ani_idle = ttk.Label(master=frame_ani_idle, text="Idle Animation Frame(s):", font=default_font)
 label_ani_idle_selection = ttk.Label(master=frame_ani_idle, textvariable=var_ani_idle_selection, font=default_font)
+entry_ani_idle_interval = ttk.Entry(master=frame_size, font=default_font)
 button_ani_idle_select = ttk.Button(master=frame_ani_idle,
                                     command=lambda: pick_file(ani_idle_paths, var_ani_idle_selection),
                                     text="Select Idle Sprites")

@@ -8,7 +8,7 @@ def resize(in_paths: list, size: tuple, out_folder: tuple) -> tuple:
 
     name, animation = out_folder
     x, y = size
-    export_dir = Path(name) / animation
+    export_dir = Path("pets")/ name / animation
     os.makedirs(export_dir, exist_ok=True)
 
     def export(f):
