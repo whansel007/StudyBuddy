@@ -29,8 +29,8 @@ class pet():
         self.chroma_key = info_dict["chroma_key"]
         self.prompt = info_dict["prompt"]
 
-        self.idle_interval = info_dict["idle_interval"]
-        self.idle_treshold = info_dict["idle_treshold"]
+        self.action_interval = info_dict["action_interval"]
+        self.action_treshold = info_dict["action_treshold"]
 
         # Dynamic Data
         self.state = "idle"
@@ -39,6 +39,8 @@ class pet():
 
         self.move_x = 0
         self.move_y = 0
+        self.keyboard_x = 0
+        self.keyboard_y = 0
 
         self.speed_modifier = 1
 
@@ -72,7 +74,7 @@ class pet():
         # Run self.update() after 0ms when mainloop starts
         self.window.after(0, self.update)
 
-        print(f"self is {self}")
+        print(f"HARK! I am brought into existence with these details \n{self}")
     
     def __str__(self):
         attirbutes = "\n".join(f"{key} = {value}" for key,value in self.__dict__.items())
@@ -86,18 +88,18 @@ class pet():
         if self.state == "idle":
 
             # Randomly switchs between moving right, moving left, and idle every interval
-            if time.time() >= self.idle_timestamp + self.idle_interval:        
-                self.idle_roll = random.randint(self.idle_treshold[0], self.idle_treshold[1])
+            if time.time() >= self.idle_timestamp + self.action_interval:        
+                self.idle_roll = random.randint(self.action_treshold[0], self.action_treshold[1])
                 print(f"ROLLED {self.idle_roll}")
 
                 #                 ========idle========
                 # -10 - - - - - T0 - - - -  0 - - - - T1 - - - - -  10
                 # =====left=======                    =====right=======
 
-                if self.idle_roll <= self.idle_treshold[0]:
+                if self.idle_roll <= self.action_treshold[0]:
                     self.change_movement("left", vary_speed=True)
                     self.change_animation("left")
-                elif self.idle_roll >= self.idle_treshold[1]:
+                elif self.idle_roll >= self.action_treshold[1]:
                     self.change_movement("right", vary_speed=True)
                     self.change_animation("right")
                 else:
@@ -115,28 +117,38 @@ class pet():
     
     def change_movement(self, target:str, vary_speed:bool=False):
         self.state_mov = target
+        
         if vary_speed:
-            self.speed_modifier = random.uniform(0,1.0)
+            self.speed_modifier = random.uniform(0.1,1.0)
         else:
             self.speed_modifier = 1
-
+        
+        self.move_x = max(1, int(self.speed_x * self.speed_modifier))
+        self.move_y = max(1, int(self.speed_y * self.speed_modifier))
 
     def update_position(self):
+        # TOP LEFT CORNER (0,0)
+        #
+        # up and left is - || down and right is +
+        # 
+        #                      BOTTOM RIGHT CORNER (max, max)
         if self.state_mov == "left":
-            self.move_x = -int(self.speed_x * self.speed_modifier)
-            self.move_y = 0
+            self.x -= self.move_x
         elif self.state_mov == "right":
-            self.move_x = int(self.speed_x * self.speed_modifier)
-            self.move_y = 0
+            self.x += self.move_x
+        elif self.state_mov == "up":
+            self.y -= self.move_y
+        elif self.state_mov == "down":
+            self.y += self.move_y
+        elif self.state_mov == "controlled":
+            self.x = self.move_x * self.keyboard_x
+            self.y = self.move_y * self.keyboard_y
         else:
+            # Reset move values to 0 when idle
             self.move_x = 0
             self.move_y = 0
         
         #print(self.x, self.y)
-
-        self.x += self.move_x
-        self.y += self.move_y
-
         self.x = self.x % self.screenwidth
         self.y = self.y % self.screenheight
         self.window.geometry(f'{self.size_x}x{self.size_y}+{self.x}+{self.y}') 
@@ -172,7 +184,6 @@ class pet():
 
         self.img = ImageTk.PhotoImage(img)
         self.label.configure(image=self.img)
-
     
     def update(self):
         self.update_substates()

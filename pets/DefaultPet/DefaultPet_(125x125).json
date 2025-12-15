@@ -1,0 +1,51 @@
+{
+    "name": "DefaultPet",
+    "prompt": "You are DefaultPet and you are a desktop pet",
+    "screensize": [
+        1920,
+        1080
+    ],
+    "pos_x": -150,
+    "pos_y": -150,
+    "size_x": 125,
+    "size_y": 125,
+    "speed_x": 10,
+    "speed_y": 10,
+    "sprite_idleinterval": 0.1,
+    "sprites_idle": [
+        "pets\\DefaultPet\\idle\\idle_125x125_(0).png",
+        "pets\\DefaultPet\\idle\\idle_125x125_(1).png",
+        "pets\\DefaultPet\\idle\\idle_125x125_(2).png",
+        "pets\\DefaultPet\\idle\\idle_125x125_(3).png",
+        "pets\\DefaultPet\\idle\\idle_125x125_(4).png",
+        "pets\\DefaultPet\\idle\\idle_125x125_(5).png",
+        "pets\\DefaultPet\\idle\\idle_125x125_(6).png",
+        "pets\\DefaultPet\\idle\\idle_125x125_(7).png",
+        "pets\\DefaultPet\\idle\\idle_125x125_(8).png",
+        "pets\\DefaultPet\\idle\\idle_125x125_(9).png",
+        "pets\\DefaultPet\\idle\\idle_125x125_(10).png",
+        "pets\\DefaultPet\\idle\\idle_125x125_(11).png",
+        "pets\\DefaultPet\\idle\\idle_125x125_(12).png",
+        "pets\\DefaultPet\\idle\\idle_125x125_(13).png",
+        "pets\\DefaultPet\\idle\\idle_125x125_(14).png",
+        "pets\\DefaultPet\\idle\\idle_125x125_(15).png",
+        "pets\\DefaultPet\\idle\\idle_125x125_(16).png",
+        "pets\\DefaultPet\\idle\\idle_125x125_(17).png",
+        "pets\\DefaultPet\\idle\\idle_125x125_(18).png",
+        "pets\\DefaultPet\\idle\\idle_125x125_(19).png"
+    ],
+    "sprite_walkinterval": 0.1,
+    "sprites_walk": [
+        "pets\\DefaultPet\\walk\\walk_125x125_(0).png",
+        "pets\\DefaultPet\\walk\\walk_125x125_(1).png",
+        "pets\\DefaultPet\\walk\\walk_125x125_(2).png",
+        "pets\\DefaultPet\\walk\\walk_125x125_(3).png"
+    ],
+    "chroma_key": "#808080",
+    "action_interval": 5,
+    "action_treshold": [
+        -5,
+        5
+    ],
+    "save_path": "pets\\DefaultPet\\DefaultPet_(125x125).json"
+}
