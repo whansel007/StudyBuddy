@@ -1,6 +1,6 @@
 {
     "name": "DefaultPet",
-    "prompt": "You are DefaultPet and you are a desktop pet",
+    "prompt": "Your name is PET and you are a desktop pet",
     "screensize": [
         1920,
         1080
@@ -9,8 +9,8 @@
     "pos_y": -150,
     "size_x": 125,
     "size_y": 125,
-    "speed_x": 10,
-    "speed_y": 10,
+    "speed_x": 5,
+    "speed_y": 5,
     "sprite_idleinterval": 0.1,
     "sprites_idle": [
         "pets\\DefaultPet\\idle\\idle_125x125_(0).png",
@@ -47,5 +47,9 @@
         -5,
         5
     ],
-    "save_path": "pets\\DefaultPet\\DefaultPet_(125x125).json"
+    "save_path": "pets\\DefaultPet\\DefaultPet_(125x125).json",
+    "hunger": 89,
+    "hunger_max": 100,
+    "hunger_decayrate": 1,
+    "hunger_decayinterval": 30
 }

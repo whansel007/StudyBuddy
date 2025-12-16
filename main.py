@@ -18,12 +18,13 @@ default_font = ("Comic Sans MS", 10)
 default_boldfont = ("Comic Sans MS", 12, "bold")
 
 default_name = "DefaultPet"
+default_prompt = f"Your name is PET and you are a desktop pet"
 default_pos_x = -150
 default_pos_y = -150
 default_size_x = 125
 default_size_y = 125
-default_speed_x = 10
-default_speed_y = 10
+default_speed_x = 5
+default_speed_y = 5
 default_idlesprite = str(Path("asset") / "default_idle.gif")
 default_walksprite = str(Path("asset") / "default_walk.gif")
 default_spriteinterval = 0.1
@@ -31,19 +32,25 @@ default_idleinterval = 3
 default_treshhold = (5,5)
 
 # Main window
-def test(position):
-    print(position)
-    print("test")
-
 tk_root = tk.Tk()
-tk_root.bind("<Button-3>", test)
 screensize = (tk_root.winfo_screenwidth(), tk_root.winfo_screenheight())
 tk_root.title("Settings")
 tk_root.geometry("500x800")
 
+def close_main():
+    for pet in list_pets:
+        pet.close_pet()
+    tk_root.destroy()
+
+tk_root.protocol("WM_DELETE_WINDOW", close_main)
+
 # Name Entry
 frame_name, (entry_name) = create_general_entry(tk_root, "Pet name:", default_value=default_name, font_bold= default_boldfont, font_default= default_font)
 frame_name.pack(pady=default_padding)
+
+# Prompt Entry
+frame_prompt, (entry_prompt) = create_general_entry(tk_root, "Prompt", default_value=default_prompt, width_value=40, font_bold=default_boldfont, font_default=default_font)
+frame_prompt.pack(pady=default_padding)
 
 # Pos Entry
 frame_pos, (entry_pos_x, entry_pos_y) = create_general_entry(tk_root, "Pet position (x,y):", 2, default_value= (default_pos_x, default_pos_y), font_bold=default_boldfont, font_default=default_font)
@@ -102,6 +109,7 @@ def open_additionalsettings():
         window_additionalsettings.destroy()
 
     window_additionalsettings.protocol("WM_DELETE_WINDOW", close_additionalsettings)
+
     # Action interval entry
     frame_action_interval, (entry_action_interval) = create_general_entry(window_additionalsettings, "Idle action interval (in seconds):", 1, font_bold=default_boldfont, font_default=default_font)
     frame_action_interval.pack(pady=default_padding)
@@ -148,6 +156,8 @@ def create_pet(pet_container:list):
     """
     name = get_with_default(entry_name, default_name, str)
 
+    prompt = get_with_default(entry_prompt, default_prompt, str)
+
     pos_x = get_with_default(entry_pos_x, default_pos_x)
     pos_y = get_with_default(entry_pos_y, default_pos_y)
 
@@ -166,7 +176,7 @@ def create_pet(pet_container:list):
 
     info_dict = {
         "name": name,
-        "prompt" : f"You are {name} and you are a desktop pet",
+        "prompt" : prompt,
         "screensize" : screensize,
         "pos_x": pos_x,
         "pos_y": pos_y,
@@ -186,6 +196,10 @@ def create_pet(pet_container:list):
         "action_interval" : float(action_interval) if action_interval else 5,
         "action_treshold" : tuple(action_treshold) if action_treshold else (-5,5),
         "save_path" : str(save_path),
+        "hunger": 100,
+        "hunger_max": 100,
+        "hunger_decayrate":1,
+        "hunger_decayinterval":30,
     }
 
     with open(save_path, "w", encoding="utf-8") as save_file:

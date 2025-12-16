@@ -15,7 +15,7 @@ def create_animation_entry(parent, label_text:str, button_command, default_value
     if default_value:
         paths=[default_value]
         var_selection=tk.StringVar(value=paths)
-        
+
     label = ttk.Label(master=frame, text=label_text, font=font_default)
     label_selection = ttk.Label(master=frame, textvariable=var_selection, font=font_default)
     button_select = ttk.Button(master=frame,
@@ -37,7 +37,7 @@ def create_animation_entry(parent, label_text:str, button_command, default_value
     
     return frame, paths, var_selection, entry_interval
 
-def create_general_entry(parent, label_text:str, num_entries:int=1, default_value:tuple = (),font_bold:tuple=None, font_default:tuple=None):
+def create_general_entry(parent, label_text:str, num_entries:int=1, default_value:tuple = (),font_bold:tuple=None, font_default:tuple=None, width_value=20):
     """
     Creates a frame with a label and a specified number of entry widgets.
     """
@@ -49,13 +49,13 @@ def create_general_entry(parent, label_text:str, num_entries:int=1, default_valu
         entries = []
         entry_frame = ttk.Frame(master=frame)
         for i in range(num_entries):
-            entry = ttk.Entry(master=entry_frame, font=font_default)
+            entry = ttk.Entry(master=entry_frame, font=font_default, width=width_value)
             entry.pack(side="left", padx=2)
             entry.insert(0, str(default_value[i]))
             entries.append(entry)
         entry_frame.pack()
     else:
-        entry = ttk.Entry(master=frame, font=font_default)
+        entry = ttk.Entry(master=frame, font=font_default, width=width_value)
         entry.insert(0, str(default_value))
         entry.pack()
         entries = entry

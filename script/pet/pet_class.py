@@ -1,12 +1,13 @@
 # Define a pet class to be initialized
 import tkinter as tk
+import json
 import random
 import time
 from PIL import Image, ImageTk
 
 class pet():
     def __init__(self, master, info_dict:dict):
-        # Static Data
+        # Extract Data
         self.name = info_dict["name"]
         
         self.size_x = info_dict["size_x"]
@@ -31,6 +32,14 @@ class pet():
 
         self.action_interval = info_dict["action_interval"]
         self.action_treshold = info_dict["action_treshold"]
+        
+        self.hunger = info_dict["hunger"]
+        self.hunger_max = info_dict["hunger_max"]
+        self.hunger_decayrate = info_dict["hunger_decayrate"]
+        self.hunger_decayinterval = info_dict["hunger_decayinterval"]
+
+        self.save_path = info_dict["save_path"]
+        self.info_dict = info_dict
 
         # Dynamic Data
         self.state = "idle"
@@ -39,35 +48,48 @@ class pet():
 
         self.move_x = 0
         self.move_y = 0
+        self.speed_modifier = 1
+        
         self.keyboard_x = 0
         self.keyboard_y = 0
 
-        self.speed_modifier = 1
-
         self.img = tk.PhotoImage(file=self.sprites_idle[0])
-
-        self.idle_timestamp = time.time()
-        self.idle_roll = 0
-
         self.sprite_timestamp = time.time()
         self.sprite_set = self.sprites_idle
         self.sprite_index = 0
-
         self.sprite_flip = False
+
+        self.idle_timestamp = time.time()
+        self.idle_roll = 0
+        
+        self.hunger_timestamp = time.time()
 
         # Window 
         self.window = tk.Toplevel(master)
         self.window.overrideredirect(True) # Frameless
         self.window.attributes('-topmost', True) # Draw over all others
         self.window.wm_attributes('-transparentcolor',self.chroma_key) # Interpert exery pixel of that color is transparent
-        
+        self.window.protocol("WM_DELETE_WINDOW", self.close_pet)
+
         self.x = self.x if self.x > 0 else self.screenwidth + self.x
         self.y = self.y if self.y > 0 else self.screenheight + self.y
         self.window.geometry(f'{self.size_x}x{self.size_y}+{self.x}+{self.y}') 
         
         # Image
-        self.label = tk.Label(self.window, bd=0, bg=self.chroma_key) # Border line thickness of 0 and the background chroma key color (since need to have background color) 
+        self.label = tk.Label(self.window, bd=0, bg=self.chroma_key) # Border line thickness of 0 and the background chroma key color (since need to have background color)
+        self.label.bind("<Button-3>", self.show_petmenu) 
         
+        # Create the pet's right-click menu
+        self.pet_menu = tk.Menu(self.window, tearoff=0)
+        self.pet_menu.add_command(label="", state="disabled") # Index 0 for hunger status
+        self.pet_menu.add_separator()
+        self.pet_menu.add_command(label="Feed", command=self.feed_pet)
+        self.pet_menu.add_command(label="Play", command=self.play_with_pet)
+        self.pet_menu.add_separator()
+        self.pet_menu.add_command(label="Send to stasis", command=self.close_pet)
+        self.pet_menu.add_separator()
+        self.pet_menu.add_command(label="Cancel")
+
         self.label.configure(image=self.img)
         self.label.pack()
         
@@ -76,6 +98,33 @@ class pet():
 
         print(f"HARK! I am brought into existence with these details \n{self}")
     
+    def close_pet(self):
+        self.info_dict["hunger"] = self.hunger
+        print(f"Saving \n {self.info_dict}")
+
+        with open(self.save_path, "w", encoding="utf-8") as save_file:
+            json.dump(self.info_dict,save_file, indent=4)
+        
+        self.window.destroy()
+    
+    def show_petmenu(self, event):
+        """
+        This function is the event handler for the right-click.
+        It updates the hunger status in the menu and then displays it.
+        """
+        
+        hunger_text = f"Hunger: {int(self.hunger)}/{self.hunger_max}"
+        self.pet_menu.entryconfig(0, label=hunger_text)
+
+        self.pet_menu.post(event.x_root, event.y_root)
+
+    def feed_pet(self):
+        print(f"Feeding {self.name}!")
+        self.hunger += 25
+
+    def play_with_pet(self):
+        print(f"Playing with {self.name}!")
+
     def __str__(self):
         attirbutes = "\n".join(f"{key} = {value}" for key,value in self.__dict__.items())
         return attirbutes
@@ -125,6 +174,13 @@ class pet():
         
         self.move_x = max(1, int(self.speed_x * self.speed_modifier))
         self.move_y = max(1, int(self.speed_y * self.speed_modifier))
+    
+    def update_hunger(self):
+        # Update hunger
+        if time.time() >= self.hunger_timestamp + self.hunger_decayinterval:
+            self.hunger -= self.hunger_decayrate
+            self.hunger_timestamp = time.time()
+        self.hunger = max(0, min(self.hunger, self.hunger_max))
 
     def update_position(self):
         # TOP LEFT CORNER (0,0)
@@ -186,6 +242,7 @@ class pet():
         self.label.configure(image=self.img)
     
     def update(self):
+        self.update_hunger()
         self.update_substates()
         self.update_position()
         self.update_animation()
