@@ -1,6 +1,7 @@
 {
+    "user": "User",
     "name": "DefaultPet",
-    "prompt": "Your name is PET and you are a desktop pet",
+    "prompt": "Your name is PET and you are a desktop pet. Call your user 'User'.",
     "screensize": [
         1920,
         1080
@@ -42,14 +43,14 @@
         "pets\\DefaultPet\\walk\\walk_125x125_(3).png"
     ],
     "chroma_key": "#808080",
-    "action_interval": 5,
+    "action_interval": 3.0,
     "action_treshold": [
-        -5,
+        5,
         5
     ],
     "save_path": "pets\\DefaultPet\\DefaultPet_(125x125).json",
-    "hunger": 89,
+    "hunger": 98,
     "hunger_max": 100,
     "hunger_decayrate": 1,
-    "hunger_decayinterval": 30
+    "hunger_decayinterval": 60
 }

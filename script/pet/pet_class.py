@@ -6,7 +6,7 @@ import time
 from PIL import Image, ImageTk
 
 class pet():
-    def __init__(self, master, info_dict:dict):
+    def __init__(self, master, info_dict:dict, callback_dict:dict):
         # Extract Data
         self.name = info_dict["name"]
         
@@ -41,11 +41,14 @@ class pet():
         self.save_path = info_dict["save_path"]
         self.info_dict = info_dict
 
+        # Call back
+        self.feed_callback = callback_dict.get("feed_callback")
+
         # Dynamic Data
         self.state = "idle"
         self.state_ani = "idle"
         self.state_mov = "idle"
-
+        
         self.move_x = 0
         self.move_y = 0
         self.speed_modifier = 1
@@ -119,8 +122,11 @@ class pet():
         self.pet_menu.post(event.x_root, event.y_root)
 
     def feed_pet(self):
-        print(f"Feeding {self.name}!")
-        self.hunger += 25
+        if self.feed_callback and self.feed_callback():
+            print(f"Feeding {self.name}!")
+            self.hunger = min(self.hunger + 25, self.hunger_max)
+        else:
+            print(f"Not enough food to feed {self.name}!")
 
     def play_with_pet(self):
         print(f"Playing with {self.name}!")

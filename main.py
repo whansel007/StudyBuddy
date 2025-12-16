@@ -40,6 +40,8 @@ default_hungerrate = 1
 user_pets = []
 user_coin = 0
 user_food = 0
+var_user_coin = None
+var_user_food = None
 
 # Main window
 root = tk.Tk()
@@ -68,6 +70,8 @@ with open(default_userinvpath, "r", encoding="utf-8") as save_file:
     userstat = json.load(save_file)
     user_coin = userstat["coin"]
     user_food = userstat["food"]
+    var_user_coin = tk.StringVar(value=f"Coin : {user_coin}")
+    var_user_food = tk.StringVar(value=f"Food : {user_food}")
 
 # Name Entry
 frame_name, (entry_name) = create_general_entry(root, "Pet name:", default_value=default_name, font_bold= default_boldfont, font_default= default_font)
@@ -111,10 +115,10 @@ frame_chromakey, var_chromakey_selection = create_color_entry(root, "Outline Col
 frame_chromakey.pack(pady=default_padding)
 
 # Additional settings button
-action_interval = None
-action_treshold = None
-hunger_interval = None
-hunger_rate = None
+action_interval = default_actioninterval
+action_treshold = default_actiontreshhold
+hunger_interval = default_hungerinterval
+hunger_rate = default_hungerrate
 
 def open_additionalsettings():
     """
@@ -122,7 +126,7 @@ def open_additionalsettings():
     """
     # Additional settings window
     window_additionalsettings = tk.Toplevel(master=root)
-    window_additionalsettings.title("Additional Settings")
+    window_aadditionalsettings.title("Additional Settings")
     window_additionalsettings.geometry("400x400")
 
     label_warning = tk.Label(master=window_additionalsettings, text="CLOSE THIS BEFORE LAUNCHING PET!")
@@ -130,10 +134,11 @@ def open_additionalsettings():
 
     def close_additionalsettings():
         print("Duar")
-        action_interval = entry_action_interval.get()
-        action_treshold = (entry_action_tresholdleft.get(), entry_action_tresholdright.get())
-        hunger_interval = entry_hunger_interval.get()
-        hunger_rate = entry_hunger_rate
+        action_interval = get_with_default(entry_action_interval, default_actioninterval)
+        action_treshold = ( get_with_default(entry_action_tresholdleft, default_actiontreshhold[0]),
+                           get_with_default(entry_action_tresholdright, default_actiontreshhold[1]))
+        hunger_interval = get_with_default(entry_hunger_interval, default_hungerinterval)
+        hunger_rate = get_with_default(entry_hunger_rate, default_hungerrate)
 
         window_additionalsettings.destroy()
 
@@ -158,13 +163,27 @@ def open_additionalsettings():
 button_settings = ttk.Button(root, text="Additional Settings...", command=open_additionalsettings)
 button_settings.pack(pady=10)
 
+def feed_pet_action():
+    global user_food, user_coin
+    if user_food > 0:
+        user_food -= 1
+        var_user_food.set(f"Food : {user_food}")
+        with open(default_userinvpath, "w", encoding="utf-8") as stat_file:
+            json.dump({"coin": user_coin, "food": user_food}, stat_file, indent=4)
+        return True
+    return False
+
+def pomodoro_pet_action():
+    global user_coin
+
 # Pet creation
 def launch_pet(pet_container:list, info_dict:dict):
     """
     Creates a pet object according to the info_dict, and appends that pet object into the container list
     """
-    
-    new_pet = pet(root, info_dict)
+    callback_dict = {"feed_callback" : feed_pet_action,
+                     "work_callback": pomodoro_pet_action}
+    new_pet = pet(root, info_dict, callback_dict)
     pet_container.append(new_pet)
     print(pet_container)
 
@@ -277,8 +296,8 @@ def open_shop():
     label_shop.pack()
 
     def update_inv():
-        var_coin.set(f"Coin : {user_coin}")
-        var_food.set(f"Food : {user_food}")
+        var_user_coin.set(f"Coin : {user_coin}")
+        var_user_food.set(f"Food : {user_food}")
         
         with open(default_userinvpath, "w", encoding="utf-8") as stat_file:
                 json.dump({"coin": user_coin, 
@@ -292,12 +311,10 @@ def open_shop():
         update_inv()
     
     frame_stat = ttk.Frame(master=window_shop)
-    var_coin = tk.StringVar(value=f"Coin : {user_coin}")
-    label_coin = ttk.Label(master=frame_stat, textvariable=var_coin, font=default_font)
+    label_coin = ttk.Label(master=frame_stat, textvariable=var_user_coin, font=default_font)
     
     frame_food = ttk.Frame(master=frame_stat)
-    var_food = tk.StringVar(value=f"Food : {user_food}")
-    label_food = ttk.Label(master=frame_food, textvariable=var_food, font=default_font)
+    label_food = ttk.Label(master=frame_food, textvariable=var_user_food, font=default_font)
     button_foodbuy = tk.Button(master=frame_food, text="Buy Food!",
                                command=buy_food)
     
@@ -308,8 +325,6 @@ def open_shop():
     frame_food.pack(pady=default_padding)
     
     frame_stat.pack(pady=default_padding)
-
-
 
 frame_shop = ttk.Frame(master=root)
 button_shop = tk.Button(master=frame_shop, text="Open Shop!",
