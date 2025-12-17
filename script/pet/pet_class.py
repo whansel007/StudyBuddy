@@ -42,7 +42,7 @@ class pet():
         self.info_dict = info_dict
 
         # Call back
-        self.feed_callback = callback_dict.get("feed_callback")
+        self.feed_callback = callback_dict["feed_callback"]
 
         # Dynamic Data
         self.state = "idle"
@@ -84,11 +84,29 @@ class pet():
         
         # Create the pet's right-click menu
         self.pet_menu = tk.Menu(self.window, tearoff=0)
-        self.pet_menu.add_command(label="", state="disabled") # Index 0 for hunger status
+        
+        # Pet Stat menu
+        self.pet_menu.add_command(label="Hunger 0/0", state="disabled") # Index 0 for hunger status
         self.pet_menu.add_separator()
+        
+        # Feed menu
         self.pet_menu.add_command(label="Feed", command=self.feed_pet)
+        self.pet_menu.add_separator()
+        
+        # Play menu
         self.pet_menu.add_command(label="Play", command=self.play_with_pet)
         self.pet_menu.add_separator()
+       
+        # Work Pomodoro menu
+        self.pomodoro_submenu = tk.Menu(self.pet_menu, tearoff=0)
+        self.pomodoro_submenu.add_command(label="Break Budget")
+        self.pomodoro_submenu.add_command(label="Classic")
+        self.pet_menu.add_cascade(label="Pomodoro", menu=self.pomodoro_submenu)
+        
+        # Work Transcribe menu
+        self.transcribe_submenu = tk.Menu()
+        self.pet_menu.add_separator()
+        
         self.pet_menu.add_command(label="Send to stasis", command=self.close_pet)
         self.pet_menu.add_separator()
         self.pet_menu.add_command(label="Cancel")
@@ -122,7 +140,7 @@ class pet():
         self.pet_menu.post(event.x_root, event.y_root)
 
     def feed_pet(self):
-        if self.feed_callback and self.feed_callback():
+        if self.feed_callback():
             print(f"Feeding {self.name}!")
             self.hunger = min(self.hunger + 25, self.hunger_max)
         else:

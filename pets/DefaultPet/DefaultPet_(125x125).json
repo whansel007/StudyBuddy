@@ -45,11 +45,11 @@
     "chroma_key": "#808080",
     "action_interval": 3.0,
     "action_treshold": [
-        5,
+        -5,
         5
     ],
     "save_path": "pets\\DefaultPet\\DefaultPet_(125x125).json",
-    "hunger": 98,
+    "hunger": 100,
     "hunger_max": 100,
     "hunger_decayrate": 1,
     "hunger_decayinterval": 60

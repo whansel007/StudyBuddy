@@ -5,7 +5,7 @@ from tkinter import filedialog, colorchooser
 def pick_file(result:list,
               display:tk.Button=None,
               window_title:str="Select file",
-              file_types:list=[("GIF","*.gif"),("PNG","*.png"),("All files", "*.*")]):
+              file_types:list=[("All files", "*.*"),("GIF","*.gif"),("PNG","*.png")]):
     """
     Edit the result list in place to contain a list of path(s) of the file 
     """

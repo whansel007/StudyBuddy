@@ -32,7 +32,7 @@ default_idlesprite = str(Path("asset") / "default_idle.gif")
 default_walksprite = str(Path("asset") / "default_walk.gif")
 default_spriteinterval = 0.1
 default_actioninterval = 3
-default_actiontreshhold = (5,5)
+default_actiontreshhold = (-5,5)
 default_hungerinterval = 60
 default_hungerrate = 1
 
@@ -126,10 +126,10 @@ def open_additionalsettings():
     """
     # Additional settings window
     window_additionalsettings = tk.Toplevel(master=root)
-    window_aadditionalsettings.title("Additional Settings")
+    window_additionalsettings.title("Additional Settings")
     window_additionalsettings.geometry("400x400")
 
-    label_warning = tk.Label(master=window_additionalsettings, text="CLOSE THIS BEFORE LAUNCHING PET!")
+    label_warning = tk.Label(master=window_additionalsettings, text="CLOSE THIS BEFORE LAUNCHING PET!", font=default_boldfont)
     label_warning.pack(pady=default_padding)
 
     def close_additionalsettings():
@@ -210,6 +210,8 @@ def create_pet(pet_container:list):
     """
     Extracts the information from all entries, compiles them into the info dict, saves the info dict as a.json and uses that info dict to launch a pet 
     """
+    
+
     user = get_with_default(entry_user, default_user, str)
     name = get_with_default(entry_name, default_name, str)
 
