@@ -96,18 +96,60 @@ frame_speed, (entry_speed_x, entry_speed_y) = create_general_entry(root, "Pet sp
 frame_speed.pack(pady=default_padding)
 
 # Animation
+window_anisettings_open = False
+sprite_idlepaths = default_idlesprite
+sprite_idleinterval = default_spriteinterval
+sprite_walkpaths = default_walksprite
+sprite_walkinterval = default_spriteinterval
+
+def open_anisettings():
+    """
+    Open animation window
+    """
+    global window_anisettings_open, sprite_idlepaths, sprite_walkpaths
+
+    if window_anisettings_open:
+        return
+    
+    # The animation settings window
+    window_anisettings_open = True
+    window_anisettings = tk.Toplevel(master=root)
+    window_anisettings.title("Animation Settings")
+    window_anisettings.geometry("400x800")
+    
+    # The Contents
+    label_warning = tk.Label(master=window_anisettings, text="CLOSE THIS BEFORE LAUNCHING PET!", font=default_boldfont)
+    label_warning.pack(pady=default_padding)
+
+    frame_aniwindow = ttk.Frame(master=window_anisettings)
+    label_anisetting = ttk.Label(master=frame_aniwindow, text="Select Animation Frames [GIF or PNG]", font=default_boldfont)
+    label_anisetting.pack()
+
+    frame_ani_idle, sprite_idlepaths, var_ani_idle_selection, entry_ani_idle_interval = create_animation_entry(frame_aniwindow, "Idle Animation Frame(s):", pick_file, default_value=default_idlesprite, default_interval= default_spriteinterval, font_default= default_font, font_bold=default_boldfont,default_width=default_width)
+    frame_ani_idle.pack(pady=default_padding)
+
+    frame_ani_walk, sprite_walkpaths, var_ani_walk_selection, entry_ani_walk_interval = create_animation_entry(frame_aniwindow, "Walk Animation Frame(s):", pick_file, default_value=default_walksprite, default_interval=default_spriteinterval, font_default= default_font, font_bold=default_boldfont,default_width=default_width)
+    frame_ani_walk.pack(pady=default_padding)
+
+    frame_aniwindow.pack(pady=default_padding)
+
+    def close_anisettings():
+        global window_anisettings_open, sprite_idleinterval, sprite_walkinterval
+
+        window_anisettings_open = False
+        sprite_idleinterval = get_with_default(entry_ani_idle_interval, default_spriteinterval, float)
+        sprite_walkinterval = get_with_default(entry_ani_walk_interval, default_spriteinterval, float)
+        window_anisettings.destroy()
+    
+    window_anisettings.protocol("WM_DELETE_WINDOW", close_anisettings)
+
 frame_ani = ttk.Frame(master=root)
 label_ani = ttk.Label(master=frame_ani, text="Animation Frames [GIF or PNG]", font=default_boldfont)
-label_ani.pack()
-
-frame_ani_idle, ani_idle_paths, var_ani_idle_selection, entry_ani_idle_interval = create_animation_entry(frame_ani, "Idle Animation Frame(s):", pick_file, default_value=default_idlesprite, default_interval= default_spriteinterval, font_default= default_font, default_width=default_width)
-frame_ani_idle.pack(pady=default_padding)
-
-frame_ani_walk, ani_walk_paths, var_ani_walk_selection, entry_ani_walk_interval = create_animation_entry(frame_ani, "Walk Animation Frame(s):", pick_file, default_value=default_walksprite, default_interval=default_spriteinterval, font_default= default_font, default_width=default_width)
-frame_ani_idle.pack(pady=default_padding)
-
-frame_ani_walk.pack(pady=default_padding)
-
+button_ani = tk.Button(master=frame_ani, 
+                       text="Open Animation Settings", 
+                       bg="#19CEE6", command=open_anisettings)
+label_ani.pack(pady=default_padding)
+button_ani.pack(pady=default_padding)
 frame_ani.pack(pady=default_padding)
 
 # Chromakey Entry
@@ -120,20 +162,25 @@ action_treshold = default_actiontreshhold
 hunger_interval = default_hungerinterval
 hunger_rate = default_hungerrate
 
+window_additionalsettings_open = False
 def open_additionalsettings():
     """
     Open the additional settings window
     """
     # Additional settings window
-    window_additionalsettings = tk.Toplevel(master=root)
-    window_additionalsettings.title("Additional Settings")
-    window_additionalsettings.geometry("400x400")
+    if not(window_additionalsettings_open):
+        window_additionalsettings_open = True
+        window_additionalsettings = tk.Toplevel(master=root)
+        window_additionalsettings.title("Additional Settings")
+        window_additionalsettings.geometry("400x400")
 
     label_warning = tk.Label(master=window_additionalsettings, text="CLOSE THIS BEFORE LAUNCHING PET!", font=default_boldfont)
     label_warning.pack(pady=default_padding)
 
     def close_additionalsettings():
-        print("Duar")
+        global window_additionalsettings_open, action_interval, action_treshold, hunger_interval, hunger_rate
+
+        window_additionalsettings_open = False
         action_interval = get_with_default(entry_action_interval, default_actioninterval)
         action_treshold = ( get_with_default(entry_action_tresholdleft, default_actiontreshhold[0]),
                            get_with_default(entry_action_tresholdright, default_actiontreshhold[1]))
@@ -225,9 +272,6 @@ def create_pet(pet_container:list):
 
     speed_x = get_with_default(entry_speed_x, default_speed_x)
     speed_y = get_with_default(entry_speed_y, default_speed_y)
-
-    sprite_idleinterval = get_with_default(entry_ani_idle_interval, default_spriteinterval, float)
-    sprite_walkinterval = get_with_default(entry_ani_walk_interval, default_spriteinterval, float)
     
     chromakey = var_chromakey_selection.get()
 
@@ -245,11 +289,11 @@ def create_pet(pet_container:list):
         "speed_x": speed_x,
         "speed_y": speed_y,
         "sprite_idleinterval": sprite_idleinterval,
-        "sprites_idle": resize(ani_idle_paths,
+        "sprites_idle": resize(sprite_idlepaths,
                               (size_x, size_y),
                                 (name, "idle")),
         "sprite_walkinterval" :sprite_walkinterval,
-        "sprites_walk": resize(ani_walk_paths,  
+        "sprites_walk": resize(sprite_walkpaths,  
                               (size_x, size_y),
                                 (name, "walk")),
         "chroma_key": chromakey,

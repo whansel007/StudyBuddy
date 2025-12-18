@@ -2,7 +2,7 @@
 import tkinter as tk
 from tkinter import ttk
 
-def create_animation_entry(parent, label_text:str, button_command, default_value:str=None, default_interval:float = 0.1, font_default:tuple=None, default_width:tuple=None):
+def create_animation_entry(parent, label_text:str, button_command, default_value:str=None, default_interval:float = 0.1, font_default:tuple=None, font_bold:tuple = None, default_width:tuple=None):
     """
     Creates a frame for animation selection.
     """
@@ -16,24 +16,25 @@ def create_animation_entry(parent, label_text:str, button_command, default_value
         paths=[default_value]
         var_selection=tk.StringVar(value=paths)
 
-    label = ttk.Label(master=frame, text=label_text, font=font_default)
+    label = ttk.Label(master=frame, text=label_text, font=font_bold)
     label_selection = ttk.Label(master=frame, textvariable=var_selection, font=font_default)
-    button_select = ttk.Button(master=frame,
+    button_select = tk.Button(master=frame,
                                     command=lambda: button_command(paths, var_selection),
-                                    text="Select Sprites")
+                                    text="Select Sprites",
+                                    bg="#19CEE6")
 
     frame_interval = ttk.Frame(master=frame)
     label_interval = ttk.Label(master=frame_interval, text="Frame interval:", font=font_default)
     entry_interval = ttk.Entry(master=frame_interval, font=font_default, width=default_width)
     entry_interval.insert(0, default_interval)
 
-    label.pack()
-    label_selection.pack()
-    button_select.pack()
+    label.pack(pady=default_width)
+    label_selection.pack(pady=default_width)
+    button_select.pack(pady=default_width)
 
     frame_interval.pack(pady=6)
-    label_interval.pack(side="left")
-    entry_interval.pack(side="right")
+    label_interval.pack(side="left",pady=default_width)
+    entry_interval.pack(side="right",pady=default_width)
     
     return frame, paths, var_selection, entry_interval
 
