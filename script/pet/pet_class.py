@@ -112,11 +112,8 @@ class pet():
         self.pet_menu.add_separator()
        
         # Work Pomodoro menu
-        self.pomodoro_submenu = tk.Menu(self.pet_menu, tearoff=0)
-        self.pomodoro_submenu.add_command(label="Break Budget")
-        self.pomodoro_submenu.add_command(label="Classic")
-        self.pet_menu.add_cascade(label="Pomodoro", menu=self.pomodoro_submenu)
-        
+        self.pet_menu.add_command(label="Pomodoro", command=self.open_pomodoro)
+
         # Work Transcribe menu
         self.transcribe_submenu = tk.Menu()
         self.pet_menu.add_separator()
@@ -171,6 +168,9 @@ class pet():
 
     def play_with_pet(self):
         print(f"Playing with {self.name}!")
+    
+    def open_pomodoro(self):
+        print(f"{self.name} Opening pomodoro window!")
 
 
 

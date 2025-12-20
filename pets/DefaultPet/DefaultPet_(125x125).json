@@ -66,9 +66,9 @@
     ],
     "action_eat_treshold": 5,
     "save_path": "pets\\DefaultPet\\DefaultPet_(125x125).json",
-    "hunger": 63,
+    "hunger": 100,
     "hunger_max": 100,
     "hunger_decay_rate": 1,
-    "hunger_decay_interval": 1,
+    "hunger_decay_interval": 60,
     "hunger_recover_rate": 25
 }
