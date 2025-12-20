@@ -20,23 +20,31 @@ class pet():
         self.speed_x = info_dict["speed_x"]
         self.speed_y = info_dict["speed_y"]
 
-        self.sprites_idle = info_dict["sprites_idle"]
-        self.sprites_walk = info_dict["sprites_walk"]
+        self.sprite_idle_path = info_dict["sprite_idle_path"]
+        self.sprite_idle_interval = info_dict["sprite_idle_interval"]
 
-        self.sprite_interval = info_dict["sprite_idleinterval"]
-        self.sprite_idleinterval = info_dict["sprite_idleinterval"]
-        self.sprite_walkinterval = info_dict["sprite_walkinterval"]
-        
+        self.sprite_walk_path = info_dict["sprite_walk_path"]
+        self.sprite_walk_interval = info_dict["sprite_walk_interval"]
+
+        self.sprite_eat_path = info_dict["sprite_eat_path"]
+        self.sprite_eat_interval = info_dict["sprite_eat_interval"]
+    
+        self.sprite_hungry_path = info_dict["sprite_hungry_path"]
+        self.sprite_hungry_interval = info_dict["sprite_hungry_interval"]
+
         self.chroma_key = info_dict["chroma_key"]
         self.prompt = info_dict["prompt"]
 
-        self.action_interval = info_dict["action_interval"]
-        self.action_treshold = info_dict["action_treshold"]
+        self.action_idle_interval = info_dict["action_idle_interval"]
+        self.action_idle_treshold = info_dict["action_idle_treshold"]
+
+        self.action_eat_treshold = info_dict["action_eat_treshold"]
         
         self.hunger = info_dict["hunger"]
         self.hunger_max = info_dict["hunger_max"]
-        self.hunger_decayrate = info_dict["hunger_decayrate"]
-        self.hunger_decayinterval = info_dict["hunger_decayinterval"]
+        self.hunger_decay_rate = info_dict["hunger_decay_rate"]
+        self.hunger_decay_interval = info_dict["hunger_decay_interval"]
+        self.hunger_recover_rate = info_dict["hunger_recover_rate"]
 
         self.save_path = info_dict["save_path"]
         self.info_dict = info_dict
@@ -46,8 +54,9 @@ class pet():
 
         # Dynamic Data
         self.state = "idle"
-        self.state_ani = "idle"
-        self.state_mov = "idle"
+        self.state_ani = "null"
+        self.state_mov = "null"
+        self.previous_state = self.state
         
         self.move_x = 0
         self.move_y = 0
@@ -56,14 +65,17 @@ class pet():
         self.keyboard_x = 0
         self.keyboard_y = 0
 
-        self.img = tk.PhotoImage(file=self.sprites_idle[0])
+        self.img = tk.PhotoImage(file=self.sprite_idle_path[0])
+        self.sprite_flip = False        
+        self.sprite_current = self.sprite_idle_path
+        self.sprite_interval = info_dict["sprite_idle_interval"]
         self.sprite_timestamp = time.time()
-        self.sprite_set = self.sprites_idle
         self.sprite_index = 0
-        self.sprite_flip = False
 
-        self.idle_timestamp = time.time()
-        self.idle_roll = 0
+        self.action_idle_timestamp = time.time()
+        self.action_idle_roll = 0
+
+        self.action_eat_roll = 0
         
         self.hunger_timestamp = time.time()
 
@@ -82,6 +94,8 @@ class pet():
         self.label = tk.Label(self.window, bd=0, bg=self.chroma_key) # Border line thickness of 0 and the background chroma key color (since need to have background color)
         self.label.bind("<Button-3>", self.show_petmenu) 
         
+
+        # THE PET MENU ===
         # Create the pet's right-click menu
         self.pet_menu = tk.Menu(self.window, tearoff=0)
         
@@ -91,7 +105,7 @@ class pet():
         
         # Feed menu
         self.pet_menu.add_command(label="Feed", command=self.feed_pet)
-        self.pet_menu.add_separator()
+        self.pet_menu.add_separator() 
         
         # Play menu
         self.pet_menu.add_command(label="Play", command=self.play_with_pet)
@@ -119,9 +133,17 @@ class pet():
 
         print(f"HARK! I am brought into existence with these details \n{self}")
     
+    # To print out all attributes the object has
+    def __str__(self):
+        attirbutes = "\n".join(f"{key} = {value}" for key,value in self.__dict__.items())
+        return attirbutes
+    
+
+
+    # PET INTERACTION ===
     def close_pet(self):
         self.info_dict["hunger"] = self.hunger
-        print(f"Saving \n {self.info_dict}")
+        print(f"SAVING \n {self.info_dict}")
 
         with open(self.save_path, "w", encoding="utf-8") as save_file:
             json.dump(self.info_dict,save_file, indent=4)
@@ -142,53 +164,91 @@ class pet():
     def feed_pet(self):
         if self.feed_callback():
             print(f"Feeding {self.name}!")
-            self.hunger = min(self.hunger + 25, self.hunger_max)
+            self.change_state("eating")
+            self.hunger = min(self.hunger + self.hunger_recover_rate, self.hunger_max)
         else:
             print(f"Not enough food to feed {self.name}!")
 
     def play_with_pet(self):
         print(f"Playing with {self.name}!")
 
-    def __str__(self):
-        attirbutes = "\n".join(f"{key} = {value}" for key,value in self.__dict__.items())
-        return attirbutes
 
-    def switch_state(self, target):
+
+    # PET STATE + HUNGER  ===
+    def change_state(self, target:str):
+        # Return early if already at target state
+        if self.state == target:
+            return
+        
+        # If switching into idle, set time stamp to be 0 so that the roll and switching of other states happens instantly instead of waiting for the timestamp window
+        if target == "idle":
+            self.action_idle_timestamp = 0
+
+        # Save previous state only if it's not the hungry state
+        if self.state != "hungry":
+            self.previous_state = self.state
+
         self.state = target
+        print(f"PREVIOUSLY {self.previous_state} ==> {self.state}")
+    
+    def update_hunger(self):
+        # Update hunger
+        if time.time() >= self.hunger_timestamp + self.hunger_decay_interval:
+            self.hunger -= self.hunger_decay_rate
+            self.hunger_timestamp = time.time()
+        self.hunger = max(0, min(self.hunger, self.hunger_max))
+
+        if self.hunger <= 0:
+            self.change_state("hungry")
     
     def update_substates(self):
         # IDLE STATE --> Frolick around randomly
         if self.state == "idle":
-
+            # print(f"{self.name} is Idle!")
+            self.update_hunger()
             # Randomly switchs between moving right, moving left, and idle every interval
-            if time.time() >= self.idle_timestamp + self.action_interval:        
-                self.idle_roll = random.randint(self.action_treshold[0], self.action_treshold[1])
-                print(f"ROLLED {self.idle_roll}")
+            if time.time() >= self.action_idle_timestamp + self.action_idle_interval:        
+                self.action_idle_roll = random.randint(-10, 10)
+                print(f"ROLLED {self.action_idle_roll}")
 
                 #                 ========idle========
                 # -10 - - - - - T0 - - - -  0 - - - - T1 - - - - -  10
                 # =====left=======                    =====right=======
 
-                if self.idle_roll <= self.action_treshold[0]:
+                if self.action_idle_roll <= self.action_idle_treshold[0]:
                     self.change_movement("left", vary_speed=True)
                     self.change_animation("left")
-                elif self.idle_roll >= self.action_treshold[1]:
+                elif self.action_idle_roll >= self.action_idle_treshold[1]:
                     self.change_movement("right", vary_speed=True)
                     self.change_animation("right")
                 else:
                     self.change_movement("idle")
                     self.change_animation("idle")
                 
-                self.idle_timestamp = time.time() # Reset idle timestamp
+                self.action_idle_timestamp = time.time() # Reset idle timestamp
         
-        # HUNGRY STATE --> Do not move
+        # EATING STATE --> Do not move and eat
+        elif self.state == "eating":
+            # Do not move and switch to hungry sprite
+            self.change_movement("idle")
+            self.change_animation("eating")
+            #print(f"{self.name} is Eating!")
+
+        # HUNGRY STATE --> Do not move and make sad face
         elif self.state == "hungry":
             # Do not move and switch to hungry sprite
-            self.state_mov = "idle"
-            self.state_ani = "hungry"
-            print("Hungry!")
+            self.change_movement("idle")
+            self.change_animation("hungry")
+            # print(f"{self.name} is Hungry!")
     
+
+    
+    # MOVEMENT STATE ===
     def change_movement(self, target:str, vary_speed:bool=False):
+        # Return early if already at target state
+        if self.state_mov == target:
+            return
+
         self.state_mov = target
         
         if vary_speed:
@@ -198,13 +258,6 @@ class pet():
         
         self.move_x = max(1, int(self.speed_x * self.speed_modifier))
         self.move_y = max(1, int(self.speed_y * self.speed_modifier))
-    
-    def update_hunger(self):
-        # Update hunger
-        if time.time() >= self.hunger_timestamp + self.hunger_decayinterval:
-            self.hunger -= self.hunger_decayrate
-            self.hunger_timestamp = time.time()
-        self.hunger = max(0, min(self.hunger, self.hunger_max))
 
     def update_position(self):
         # TOP LEFT CORNER (0,0)
@@ -233,30 +286,64 @@ class pet():
         self.y = self.y % self.screenheight
         self.window.geometry(f'{self.size_x}x{self.size_y}+{self.x}+{self.y}') 
 
+
+
+    # ANIMATION STATE ===
     def change_animation(self, target:str):
+        # Return early if already at target state
+        if self.state_ani == target:
+            return
+
         self.state_ani = target
         self.sprite_index = 0
 
         if self.state_ani == "idle":
-            self.sprite_set = self.sprites_idle
-            self.sprite_interval = self.sprite_idleinterval
+            self.sprite_current = self.sprite_idle_path
+            self.sprite_interval = self.sprite_idle_interval
 
         elif self.state_ani == "left":
-            self.sprite_set = self.sprites_walk
-            self.sprite_interval = self.sprite_walkinterval
+            self.sprite_current = self.sprite_walk_path
+            self.sprite_interval = self.sprite_walk_interval
             self.sprite_flip = False
 
         elif self.state_ani == "right":
-            self.sprite_set = self.sprites_walk
-            self.sprite_interval = self.sprite_walkinterval
+            self.sprite_current = self.sprite_walk_path
+            self.sprite_interval = self.sprite_walk_interval
             self.sprite_flip = True
+        
+        elif self.state_ani == "eating":
+            self.sprite_current = self.sprite_eat_path
+            self.sprite_interval = self.sprite_eat_interval
+    
+        elif self.state_ani == "hungry":
+            self.sprite_current = self.sprite_hungry_path
+            self.sprite_interval = self.sprite_hungry_interval
+
+        print(f"Current animation set = {self.sprite_current}")
     
     def update_animation(self):
+        # Increase the sprite index every interval and reset the timer
         if time.time() >= self.sprite_timestamp + self.sprite_interval:
-            self.sprite_index = (self.sprite_index + 1) % len(self.sprite_set)
+            self.sprite_index = self.sprite_index + 1
+
+            # print(f"Current index {self.sprite_index} out of {len(self.sprite_current)}")
+
+            # When we hit the last frame reset back to 0
+            if self.sprite_index >= len(self.sprite_current):
+                self.sprite_index = 0
+                
+                # Special logic for eating
+                if self.state_ani == "eating":
+                    self.action_eat_roll = random.randint(1,10)
+                    print(f"EAT ROLLED {self.action_eat_roll}")
+                    if self.action_eat_roll <= self.action_eat_treshold:
+                        self.change_state(self.previous_state)
+                
+
             self.sprite_timestamp = time.time()
 
-        img_path = self.sprite_set[self.sprite_index]
+
+        img_path = self.sprite_current[self.sprite_index]
         img = Image.open(img_path)
 
         if self.sprite_flip:
@@ -266,7 +353,6 @@ class pet():
         self.label.configure(image=self.img)
     
     def update(self):
-        self.update_hunger()
         self.update_substates()
         self.update_position()
         self.update_animation()

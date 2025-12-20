@@ -13,7 +13,7 @@ def create_animation_entry(parent, label_text:str, button_command, default_value
     var_selection = tk.StringVar(value="No file selected")
 
     if default_value:
-        paths=[default_value]
+        paths=default_value
         var_selection=tk.StringVar(value=paths)
 
     label = ttk.Label(master=frame, text=label_text, font=font_bold)

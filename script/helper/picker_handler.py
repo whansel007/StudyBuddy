@@ -11,7 +11,7 @@ def pick_file(result:list,
     """
     paths = filedialog.askopenfilenames(title=window_title, filetypes=file_types)
     if paths:
-        result[:] = list(paths)
+        result[:] = paths
         if display is not None:
             display.set("\n".join(result))
     else:

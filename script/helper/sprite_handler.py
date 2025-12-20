@@ -6,6 +6,8 @@ from PIL import Image
 def resize(in_paths: list, size: tuple, out_folder: tuple) -> tuple:
     out_paths = []
 
+    print(in_paths)
+
     name, animation = out_folder
     x, y = size
     export_dir = Path("pets")/ name / animation

@@ -22,19 +22,39 @@ default_userinv = { "coin": 0,
 
 default_name = "DefaultPet"
 default_prompt = f"Your name is PET and you are a desktop pet. Call your user '{default_user}'."
+
 default_pos_x = -150
 default_pos_y = -150
 default_size_x = 125
 default_size_y = 125
 default_speed_x = 5
 default_speed_y = 5
-default_idlesprite = str(Path("asset") / "default_idle.gif")
-default_walksprite = str(Path("asset") / "default_walk.gif")
-default_spriteinterval = 0.1
-default_actioninterval = 3
-default_actiontreshhold = (-5,5)
-default_hungerinterval = 60
-default_hungerrate = 1
+
+default_idle_sprite = [str(Path("asset") / "default_idle.gif")]
+default_walk_sprite = [str(Path("asset") / "default_walk.gif")]
+default_eat_sprite = [str(Path("asset") / "default_eat.gif")]
+default_hungry_sprite = [str(Path("asset") / "default_hungry.gif")]
+default_sprite_interval = 0.1
+
+default_action_idle_interval = 3
+default_action_idle_treshold = (-5,5)
+default_action_eat_treshhold = 5
+
+default_hunger_decay_interval = 60
+default_hunger_decay_rate = 1
+default_hunger_recover_rate = 25
+
+def get_with_default(entry:tk.Entry, default_value, value_type:type = int):
+    """
+    In case u screw up and delete the default value we already put in, thus launching the pet with an empty entry
+    """
+    value = entry.get()
+
+    if value:
+        return value_type(value)
+    else:
+        return default_value
+
 
 # User Variables
 user_pets = []
@@ -43,7 +63,8 @@ user_food = 0
 var_user_coin = None
 var_user_food = None
 
-# Main window
+
+# MAIN WINDOW ===
 root = tk.Tk()
 screensize = (root.winfo_screenwidth(), root.winfo_screenheight())
 root.title("Settings")
@@ -95,18 +116,28 @@ frame_size.pack(pady=default_padding)
 frame_speed, (entry_speed_x, entry_speed_y) = create_general_entry(root, "Pet speed (x,y):", 2, default_value=(default_speed_x, default_speed_y), font_bold=default_boldfont, font_default=default_font)
 frame_speed.pack(pady=default_padding)
 
-# Animation
+
+
+# ANIMATION WINDOW ==
 window_anisettings_open = False
-sprite_idlepaths = default_idlesprite
-sprite_idleinterval = default_spriteinterval
-sprite_walkpaths = default_walksprite
-sprite_walkinterval = default_spriteinterval
+
+sprite_idle_paths = default_idle_sprite
+sprite_idle_interval = default_sprite_interval
+
+sprite_walk_paths = default_walk_sprite
+sprite_walk_interval = default_sprite_interval
+
+sprite_eat_paths = default_eat_sprite
+sprite_eat_interval = default_sprite_interval
+
+sprite_hungry_paths = default_hungry_sprite
+sprite_hungry_interval = default_sprite_interval
 
 def open_anisettings():
     """
     Open animation window
     """
-    global window_anisettings_open, sprite_idlepaths, sprite_walkpaths
+    global window_anisettings_open, sprite_idle_paths, sprite_walk_paths, sprite_eat_paths
 
     if window_anisettings_open:
         return
@@ -125,20 +156,51 @@ def open_anisettings():
     label_anisetting = ttk.Label(master=frame_aniwindow, text="Select Animation Frames [GIF or PNG]", font=default_boldfont)
     label_anisetting.pack()
 
-    frame_ani_idle, sprite_idlepaths, var_ani_idle_selection, entry_ani_idle_interval = create_animation_entry(frame_aniwindow, "Idle Animation Frame(s):", pick_file, default_value=default_idlesprite, default_interval= default_spriteinterval, font_default= default_font, font_bold=default_boldfont,default_width=default_width)
+    # Idle sprites and interval
+    frame_ani_idle, sprite_idle_paths, var_ani_idle_selection, entry_ani_idle_interval = create_animation_entry(frame_aniwindow, "Idle Animation Frame(s):", pick_file, 
+                                                                                                               default_value= default_idle_sprite, 
+                                                                                                               default_interval= default_sprite_interval, 
+                                                                                                               font_default= default_font, 
+                                                                                                               font_bold= default_boldfont,
+                                                                                                               default_width= default_width)
     frame_ani_idle.pack(pady=default_padding)
 
-    frame_ani_walk, sprite_walkpaths, var_ani_walk_selection, entry_ani_walk_interval = create_animation_entry(frame_aniwindow, "Walk Animation Frame(s):", pick_file, default_value=default_walksprite, default_interval=default_spriteinterval, font_default= default_font, font_bold=default_boldfont,default_width=default_width)
+    # Walk sprites and interval
+    frame_ani_walk, sprite_walk_paths, var_ani_walk_selection, entry_ani_walk_interval = create_animation_entry(frame_aniwindow, "Walk Animation Frame(s):", pick_file, 
+                                                                                                               default_value= default_walk_sprite, 
+                                                                                                               default_interval= default_sprite_interval, 
+                                                                                                               font_default= default_font, 
+                                                                                                               font_bold= default_boldfont,
+                                                                                                               default_width= default_width)
     frame_ani_walk.pack(pady=default_padding)
+
+    # Eat sprites and interval
+    frame_ani_eat, sprite_eat_paths, var_ani_eat_selection, entry_ani_eat_interval = create_animation_entry(frame_aniwindow, "Eat Animation Frame(s):", pick_file, 
+                                                                                                           default_value= default_eat_sprite, 
+                                                                                                           default_interval= default_sprite_interval, 
+                                                                                                           font_default= default_font, 
+                                                                                                           font_bold= default_boldfont,
+                                                                                                           default_width= default_width)
+    frame_ani_eat.pack(pady=default_padding)
+
+    # Hungry sprites and interval
+    frame_ani_hungry, sprite_hungry_paths, var_ani_hungry_selection, entry_ani_hungry_interval = create_animation_entry(frame_aniwindow, "Hungry Animation Frame(s):", pick_file, 
+                                                                                                           default_value= default_hungry_sprite, 
+                                                                                                           default_interval= default_sprite_interval, 
+                                                                                                           font_default= default_font, 
+                                                                                                           font_bold= default_boldfont,
+                                                                                                           default_width= default_width)
+    frame_ani_hungry.pack(pady=default_padding)
 
     frame_aniwindow.pack(pady=default_padding)
 
     def close_anisettings():
-        global window_anisettings_open, sprite_idleinterval, sprite_walkinterval
+        global window_anisettings_open, sprite_idle_interval, sprite_walk_interval, sprite_eat_interval
 
         window_anisettings_open = False
-        sprite_idleinterval = get_with_default(entry_ani_idle_interval, default_spriteinterval, float)
-        sprite_walkinterval = get_with_default(entry_ani_walk_interval, default_spriteinterval, float)
+        sprite_idle_interval = get_with_default(entry_ani_idle_interval, default_sprite_interval, float)
+        sprite_walk_interval = get_with_default(entry_ani_walk_interval, default_sprite_interval, float)
+        sprite_eat_interval = get_with_default(entry_ani_eat_interval, default_sprite_interval, float)
         window_anisettings.destroy()
     
     window_anisettings.protocol("WM_DELETE_WINDOW", close_anisettings)
@@ -152,15 +214,23 @@ label_ani.pack(pady=default_padding)
 button_ani.pack(pady=default_padding)
 frame_ani.pack(pady=default_padding)
 
+
+
 # Chromakey Entry
 frame_chromakey, var_chromakey_selection = create_color_entry(root, "Outline Color [Color must not already be in sprite]", pick_color, default_boldfont, default_font)
 frame_chromakey.pack(pady=default_padding)
 
-# Additional settings button
-action_interval = default_actioninterval
-action_treshold = default_actiontreshhold
-hunger_interval = default_hungerinterval
-hunger_rate = default_hungerrate
+
+
+# AADDITIONAL SETTINGS WINDOW ===
+action_idle_interval = default_action_idle_interval
+action_idle_treshold = default_action_idle_treshold
+action_eat_treshold = default_action_eat_treshhold
+
+hunger_decay_interval = default_hunger_decay_interval
+hunger_decay_rate = default_hunger_decay_rate
+
+hunger_recover_rate = default_hunger_recover_rate
 
 window_additionalsettings_open = False
 def open_additionalsettings():
@@ -168,48 +238,86 @@ def open_additionalsettings():
     Open the additional settings window
     """
     # Additional settings window
-    if not(window_additionalsettings_open):
-        window_additionalsettings_open = True
-        window_additionalsettings = tk.Toplevel(master=root)
-        window_additionalsettings.title("Additional Settings")
-        window_additionalsettings.geometry("400x400")
+    global window_additionalsettings_open
+
+    if window_additionalsettings_open:
+        return
+    
+    window_additionalsettings_open = True
+    window_additionalsettings = tk.Toplevel(master=root)
+    window_additionalsettings.title("Additional Settings")
+    window_additionalsettings.geometry("400x500")
 
     label_warning = tk.Label(master=window_additionalsettings, text="CLOSE THIS BEFORE LAUNCHING PET!", font=default_boldfont)
     label_warning.pack(pady=default_padding)
 
     def close_additionalsettings():
-        global window_additionalsettings_open, action_interval, action_treshold, hunger_interval, hunger_rate
+        global window_additionalsettings_open, action_idle_interval, action_idle_treshold, action_eat_treshold, hunger_decay_interval, hunger_decay_rate, hunger_recover_rate
 
         window_additionalsettings_open = False
-        action_interval = get_with_default(entry_action_interval, default_actioninterval)
-        action_treshold = ( get_with_default(entry_action_tresholdleft, default_actiontreshhold[0]),
-                           get_with_default(entry_action_tresholdright, default_actiontreshhold[1]))
-        hunger_interval = get_with_default(entry_hunger_interval, default_hungerinterval)
-        hunger_rate = get_with_default(entry_hunger_rate, default_hungerrate)
+
+        action_idle_interval = get_with_default(entry_action_idle_interval, default_action_idle_interval)
+        action_idle_treshold = ( get_with_default(entry_action_idle_tresholdleft, default_action_idle_treshold[0]),
+                                 get_with_default(entry_action_idle_tresholdright, default_action_idle_treshold[1]) )
+        
+        action_eat_treshold = get_with_default(entry_action_eat_treshold, default_action_eat_treshhold)
+        
+        hunger_decay_interval = get_with_default(entry_hunger_decay_interval, default_hunger_decay_interval)
+        hunger_decay_rate = get_with_default(entry_hunger_decay_rate, default_hunger_decay_rate)
+        hunger_recover_rate = get_with_default(entry_hunger_recover_rate, default_hunger_recover_rate)
 
         window_additionalsettings.destroy()
 
     window_additionalsettings.protocol("WM_DELETE_WINDOW", close_additionalsettings)
 
-    # Action interval entry
-    frame_action_interval, (entry_action_interval) = create_general_entry(window_additionalsettings, "Idle action interval (in seconds):", 1, default_value=default_actioninterval, font_bold=default_boldfont, font_default=default_font)
-    frame_action_interval.pack(pady=default_padding)
+    # Action idle interval entry
+    frame_action_idle_interval, (entry_action_idle_interval) = create_general_entry(window_additionalsettings, "Idle action interval (in seconds):", 1, 
+                                                                                    default_value= default_action_idle_interval, 
+                                                                                    font_bold= default_boldfont, 
+                                                                                    font_default= default_font)
+    frame_action_idle_interval.pack(pady=default_padding)
 
-    # Action treshhold entry
-    frame_action_treshold, (entry_action_tresholdleft, entry_action_tresholdright) = create_general_entry(window_additionalsettings, "Idle action treshold:", 2, default_value=default_actiontreshhold, font_bold=default_boldfont, font_default=default_font)
-    frame_action_treshold.pack(pady=default_padding)
+    # Action idle treshhold entry
+    frame_action_idle_treshold, (entry_action_idle_tresholdleft, entry_action_idle_tresholdright) = create_general_entry(window_additionalsettings, "Idle action treshold:", 2, 
+                                                                                                                    default_value= default_action_idle_treshold, 
+                                                                                                                    font_bold= default_boldfont, 
+                                                                                                                    font_default= default_font)
+    frame_action_idle_treshold.pack(pady=default_padding)
 
-    # Hunger interval entry
-    frame_hunger_interval, (entry_hunger_interval) = create_general_entry(window_additionalsettings, "Hunger drain interval (in seconds):", 1, default_value=default_hungerinterval, font_bold=default_boldfont, font_default=default_font)
-    frame_hunger_interval.pack(pady=default_padding)
+    # Action eat treshhold entry
+    frame_action_eat_treshold, (entry_action_eat_treshold)  = create_general_entry(window_additionalsettings, "Chance for eating animation to be repeated\n(1 very likely - 10 never):", 1, 
+                                                                                    default_value= default_action_eat_treshhold, 
+                                                                                    font_bold= default_boldfont, 
+                                                                                    font_default= default_font)
+    frame_action_eat_treshold.pack(pady=default_padding)
 
-    # Action treshhold entry
-    frame_hunger_rate, (entry_hunger_rate) = create_general_entry(window_additionalsettings, "Hunger drain rate:", 1, default_value=default_hungerrate, font_bold=default_boldfont, font_default=default_font)
-    frame_hunger_rate.pack(pady=default_padding)
+    # Hunger decay interval entry
+    frame_hunger_decay_interval, (entry_hunger_decay_interval) = create_general_entry(window_additionalsettings, "Hunger drain interval (in seconds):", 1, 
+                                                                          default_value= default_hunger_decay_interval, 
+                                                                          font_bold= default_boldfont, 
+                                                                          font_default= default_font)
+    frame_hunger_decay_interval.pack(pady=default_padding)
+
+    # Hunger decay rate entry
+    frame_hunger_decay_rate, (entry_hunger_decay_rate) = create_general_entry(window_additionalsettings, "Hunger drain rate:", 1, 
+                                                                  default_value= default_hunger_decay_rate, 
+                                                                  font_bold= default_boldfont, 
+                                                                  font_default= default_font)
+    frame_hunger_decay_rate.pack(pady=default_padding)
+
+    # Hunger recovery rate entry
+    frame_hunger_recover_rate, (entry_hunger_recover_rate) = create_general_entry(window_additionalsettings, "Hunger recover rate per food:", 1, 
+                                                                  default_value= default_hunger_recover_rate, 
+                                                                  font_bold= default_boldfont, 
+                                                                  font_default= default_font)
+    frame_hunger_recover_rate.pack(pady=default_padding)
 
 button_settings = ttk.Button(root, text="Additional Settings...", command=open_additionalsettings)
 button_settings.pack(pady=10)
 
+
+
+# PET FEEDBACK ACTION ===
 def feed_pet_action():
     global user_food, user_coin
     if user_food > 0:
@@ -223,7 +331,9 @@ def feed_pet_action():
 def pomodoro_pet_action():
     global user_coin
 
-# Pet creation
+
+
+# PET CREATION ===
 def launch_pet(pet_container:list, info_dict:dict):
     """
     Creates a pet object according to the info_dict, and appends that pet object into the container list
@@ -244,21 +354,11 @@ def load_pet(pet_container:list):
         print(info_dict)
         launch_pet(pet_container, info_dict)
 
-# In case u screw up, delete the default value I already put in, and launches the pet with an empty entry
-def get_with_default(entry:tk.Entry, default_value, value_type:type = int):
-    value = entry.get()
-
-    if value:
-        return value_type(value)
-    else:
-        return default_value
 
 def create_pet(pet_container:list):
     """
     Extracts the information from all entries, compiles them into the info dict, saves the info dict as a.json and uses that info dict to launch a pet 
     """
-    
-
     user = get_with_default(entry_user, default_user, str)
     name = get_with_default(entry_name, default_name, str)
 
@@ -288,22 +388,32 @@ def create_pet(pet_container:list):
         "size_y": size_y,
         "speed_x": speed_x,
         "speed_y": speed_y,
-        "sprite_idleinterval": sprite_idleinterval,
-        "sprites_idle": resize(sprite_idlepaths,
+        "sprite_idle_interval": sprite_idle_interval,
+        "sprite_idle_path": resize(sprite_idle_paths,
                               (size_x, size_y),
                                 (name, "idle")),
-        "sprite_walkinterval" :sprite_walkinterval,
-        "sprites_walk": resize(sprite_walkpaths,  
+        "sprite_walk_interval" :sprite_walk_interval,
+        "sprite_walk_path": resize(sprite_walk_paths,  
                               (size_x, size_y),
                                 (name, "walk")),
+        "sprite_eat_interval" :sprite_eat_interval,
+        "sprite_eat_path": resize(sprite_eat_paths,  
+                              (size_x, size_y),
+                                (name, "eat")),
+        "sprite_hungry_interval" :sprite_hungry_interval,
+        "sprite_hungry_path": resize(sprite_hungry_paths,  
+                              (size_x, size_y),
+                                (name, "hungry")),
         "chroma_key": chromakey,
-        "action_interval" : float(action_interval) if action_interval else 5,
-        "action_treshold" : tuple(action_treshold) if action_treshold else (-5,5),
+        "action_idle_interval" : float(action_idle_interval) if action_idle_interval else default_action_idle_interval,
+        "action_idle_treshold" : tuple(action_idle_treshold) if action_idle_treshold else default_action_idle_treshold,
+        "action_eat_treshold": action_eat_treshold,
         "save_path" : str(save_path),
         "hunger": 100,
         "hunger_max": 100,
-        "hunger_decayrate":hunger_rate,
-        "hunger_decayinterval":hunger_interval,
+        "hunger_decay_rate":hunger_decay_rate,
+        "hunger_decay_interval":hunger_decay_interval,
+        "hunger_recover_rate": hunger_recover_rate,
     }
 
     with open(save_path, "w", encoding="utf-8") as save_file:

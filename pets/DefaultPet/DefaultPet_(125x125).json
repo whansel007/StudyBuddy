@@ -12,8 +12,8 @@
     "size_y": 125,
     "speed_x": 5,
     "speed_y": 5,
-    "sprite_idleinterval": 0.1,
-    "sprites_idle": [
+    "sprite_idle_interval": 0.1,
+    "sprite_idle_path": [
         "pets\\DefaultPet\\idle\\idle_125x125_(0).png",
         "pets\\DefaultPet\\idle\\idle_125x125_(1).png",
         "pets\\DefaultPet\\idle\\idle_125x125_(2).png",
@@ -35,22 +35,40 @@
         "pets\\DefaultPet\\idle\\idle_125x125_(18).png",
         "pets\\DefaultPet\\idle\\idle_125x125_(19).png"
     ],
-    "sprite_walkinterval": 0.1,
-    "sprites_walk": [
+    "sprite_walk_interval": 0.1,
+    "sprite_walk_path": [
         "pets\\DefaultPet\\walk\\walk_125x125_(0).png",
         "pets\\DefaultPet\\walk\\walk_125x125_(1).png",
         "pets\\DefaultPet\\walk\\walk_125x125_(2).png",
         "pets\\DefaultPet\\walk\\walk_125x125_(3).png"
     ],
+    "sprite_eat_interval": 0.1,
+    "sprite_eat_path": [
+        "pets\\DefaultPet\\eat\\eat_125x125_(0).png",
+        "pets\\DefaultPet\\eat\\eat_125x125_(1).png",
+        "pets\\DefaultPet\\eat\\eat_125x125_(2).png",
+        "pets\\DefaultPet\\eat\\eat_125x125_(3).png",
+        "pets\\DefaultPet\\eat\\eat_125x125_(4).png",
+        "pets\\DefaultPet\\eat\\eat_125x125_(5).png",
+        "pets\\DefaultPet\\eat\\eat_125x125_(6).png"
+    ],
+    "sprite_hungry_interval": 0.1,
+    "sprite_hungry_path": [
+        "pets\\DefaultPet\\hungry\\hungry_125x125_(0).png",
+        "pets\\DefaultPet\\hungry\\hungry_125x125_(1).png",
+        "pets\\DefaultPet\\hungry\\hungry_125x125_(2).png"
+    ],
     "chroma_key": "#808080",
-    "action_interval": 3.0,
-    "action_treshold": [
+    "action_idle_interval": 3.0,
+    "action_idle_treshold": [
         -5,
         5
     ],
+    "action_eat_treshold": 5,
     "save_path": "pets\\DefaultPet\\DefaultPet_(125x125).json",
-    "hunger": 100,
+    "hunger": 63,
     "hunger_max": 100,
-    "hunger_decayrate": 1,
-    "hunger_decayinterval": 60
+    "hunger_decay_rate": 1,
+    "hunger_decay_interval": 1,
+    "hunger_recover_rate": 25
 }
