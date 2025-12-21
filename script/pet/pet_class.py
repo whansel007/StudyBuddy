@@ -4,6 +4,7 @@ import json
 import random
 import time
 from PIL import Image, ImageTk
+from script.work.work_pomodoro import PomodoroTimer
 
 class pet():
     def __init__(self, master, info_dict:dict, callback_dict:dict):
@@ -32,6 +33,9 @@ class pet():
         self.sprite_hungry_path = info_dict["sprite_hungry_path"]
         self.sprite_hungry_interval = info_dict["sprite_hungry_interval"]
 
+        self.sprite_pet_path = info_dict["sprite_pet_path"]
+        self.sprite_pet_interval = info_dict["sprite_pet_interval"]
+
         self.chroma_key = info_dict["chroma_key"]
         self.prompt = info_dict["prompt"]
 
@@ -39,6 +43,8 @@ class pet():
         self.action_idle_treshold = info_dict["action_idle_treshold"]
 
         self.action_eat_treshold = info_dict["action_eat_treshold"]
+
+        self.action_pet_treshold = info_dict["action_pet_treshold"]
         
         self.hunger = info_dict["hunger"]
         self.hunger_max = info_dict["hunger_max"]
@@ -76,6 +82,7 @@ class pet():
         self.action_idle_roll = 0
 
         self.action_eat_roll = 0
+        self.action_pet_roll = 0
         
         self.hunger_timestamp = time.time()
 
@@ -108,7 +115,7 @@ class pet():
         self.pet_menu.add_separator() 
         
         # Play menu
-        self.pet_menu.add_command(label="Play", command=self.play_with_pet)
+        self.pet_menu.add_command(label="Pet", command=self.pet_pet)
         self.pet_menu.add_separator()
        
         # Work Pomodoro menu
@@ -166,11 +173,13 @@ class pet():
         else:
             print(f"Not enough food to feed {self.name}!")
 
-    def play_with_pet(self):
-        print(f"Playing with {self.name}!")
+    def pet_pet(self):
+        print(f"Petting {self.name}!")
+        self.change_state("pet")
     
     def open_pomodoro(self):
         print(f"{self.name} Opening pomodoro window!")
+        self.pomodoro_window = PomodoroTimer(self.window)
 
 
 
@@ -240,6 +249,13 @@ class pet():
             self.change_movement("idle")
             self.change_animation("hungry")
             # print(f"{self.name} is Hungry!")
+        
+        # PET STATE --> Do not move and recieve the pets
+        elif self.state == "pet":
+            # Do not move and switch to hungry sprite
+            self.change_movement("idle")
+            self.change_animation("pet")
+            #print(f"{self.name} is being pet!")
     
 
     
@@ -318,6 +334,10 @@ class pet():
         elif self.state_ani == "hungry":
             self.sprite_current = self.sprite_hungry_path
             self.sprite_interval = self.sprite_hungry_interval
+        
+        elif self.state_ani == "pet":
+            self.sprite_current = self.sprite_pet_path
+            self.sprite_interval = self.sprite_pet_interval
 
         print(f"Current animation set = {self.sprite_current}")
     
@@ -337,7 +357,14 @@ class pet():
                     self.action_eat_roll = random.randint(1,10)
                     print(f"EAT ROLLED {self.action_eat_roll}")
                     if self.action_eat_roll <= self.action_eat_treshold:
-                        self.change_state(self.previous_state)
+                        self.change_state("idle")
+
+                # Special logic for pet
+                elif self.state_ani == "pet":
+                    self.action_pet_roll = random.randint(1,10)
+                    print(f"PET ROLLED {self.action_pet_roll}")
+                    if self.action_pet_roll <= self.action_pet_treshold:
+                        self.change_state("idle")
                 
 
             self.sprite_timestamp = time.time()
@@ -352,10 +379,10 @@ class pet():
         self.img = ImageTk.PhotoImage(img)
         self.label.configure(image=self.img)
     
+    # Update is triggered every 10 ms
     def update(self):
         self.update_substates()
         self.update_position()
         self.update_animation()
 
         self.window.after(10, self.update)
-        

@@ -9,13 +9,13 @@ from script.helper.sprite_handler import resize
 from script.helper.ui_creation import create_general_entry, create_animation_entry, create_color_entry
 from script.helper.picker_handler import pick_file,pick_color
 
-# UI Constant
+# UI Constant ===
 PADDING = 6
 WIDTH = 5
 FONT_DEFALT = ("Comic Sans MS", 10)
 FONT_BOLD = ("Comic Sans MS", 12, "bold")
 
-# Default Configs
+# Default Configs ===
 USER_NAME = "User"
 USER_INVPATH = str(Path("asset") / "user_inv.json")
 USER_INV = { "coin": 0,
@@ -37,11 +37,13 @@ IDLE_SPRITE = [str(Path("asset") / "default_idle.gif")]
 WALK_SPRITE = [str(Path("asset") / "default_walk.gif")]
 EAT_SPRITE = [str(Path("asset") / "default_eat.gif")]
 HUNGRY_SPRITE = [str(Path("asset") / "default_hungry.gif")]
+PET_SPRITE = [str(Path("asset") / "default_pet.gif")]
 SPRITE_INTERVAL = 0.1
 
 ACTION_IDLE_INTERVAL = 3
 ACTION_IDLE_TRESHOLD = (-5,5)
 ACTION_EAT_TRESHOLD = 5
+ACTION_PET_TRESHOLD = 3
 
 HUNGER_DECAY_INTERVAL = 60
 HUNGER_DECAY_RATE = 1
@@ -136,40 +138,34 @@ sprite_eat_interval = SPRITE_INTERVAL
 sprite_hungry_paths = HUNGRY_SPRITE
 sprite_hungry_interval = SPRITE_INTERVAL
 
+sprite_pet_paths = PET_SPRITE
+sprite_pet_interval = SPRITE_INTERVAL
+
 def open_anisettings():
     """
     Open animation window
     """
-    global window_anisettings_open, sprite_idle_paths, sprite_walk_paths, sprite_eat_paths
+    global window_anisettings_open, sprite_idle_paths, sprite_walk_paths, sprite_eat_paths, sprite_hungry_paths, sprite_pet_paths
 
     if window_anisettings_open:
         return
     
     # The animation settings window
     window_anisettings_open = True
-    window_anisettings = tk.Toplevel(master=root)
+    window_anisettings = tk.Toplevel(master=root, padx=10, pady=10)
     window_anisettings.title("Animation Settings")
-    window_anisettings.geometry("400x800")
-    
-    # The Contents
-    label_warning = tk.Label(master=window_anisettings, text="CLOSE THIS BEFORE LAUNCHING PET!", font=FONT_BOLD)
-    label_warning.pack(pady=PADDING)
-
-    frame_aniwindow = ttk.Frame(master=window_anisettings)
-    label_anisetting = ttk.Label(master=frame_aniwindow, text="Select Animation Frames [GIF or PNG]", font=FONT_BOLD)
-    label_anisetting.pack()
 
     # Idle sprites and interval
-    frame_ani_idle, sprite_idle_paths, var_ani_idle_selection, entry_ani_idle_interval = create_animation_entry(frame_aniwindow, "Idle Animation Frame(s):", pick_file, 
+    frame_ani_idle, sprite_idle_paths, var_ani_idle_selection, entry_ani_idle_interval = create_animation_entry(window_anisettings, "Idle Animation Frame(s):", pick_file, 
                                                                                                                default_value= IDLE_SPRITE, 
                                                                                                                default_interval= SPRITE_INTERVAL, 
                                                                                                                font_default= FONT_DEFALT, 
                                                                                                                font_bold= FONT_BOLD,
                                                                                                                default_width= WIDTH)
-    frame_ani_idle.pack(pady=PADDING)
+    frame_ani_idle.pack()
 
     # Walk sprites and interval
-    frame_ani_walk, sprite_walk_paths, var_ani_walk_selection, entry_ani_walk_interval = create_animation_entry(frame_aniwindow, "Walk Animation Frame(s):", pick_file, 
+    frame_ani_walk, sprite_walk_paths, var_ani_walk_selection, entry_ani_walk_interval = create_animation_entry(window_anisettings, "Walk Animation Frame(s):", pick_file, 
                                                                                                                default_value= WALK_SPRITE, 
                                                                                                                default_interval= SPRITE_INTERVAL, 
                                                                                                                font_default= FONT_DEFALT, 
@@ -178,7 +174,7 @@ def open_anisettings():
     frame_ani_walk.pack(pady=PADDING)
 
     # Eat sprites and interval
-    frame_ani_eat, sprite_eat_paths, var_ani_eat_selection, entry_ani_eat_interval = create_animation_entry(frame_aniwindow, "Eat Animation Frame(s):", pick_file, 
+    frame_ani_eat, sprite_eat_paths, var_ani_eat_selection, entry_ani_eat_interval = create_animation_entry(window_anisettings, "Eat Animation Frame(s):", pick_file, 
                                                                                                            default_value= EAT_SPRITE, 
                                                                                                            default_interval= SPRITE_INTERVAL, 
                                                                                                            font_default= FONT_DEFALT, 
@@ -187,7 +183,7 @@ def open_anisettings():
     frame_ani_eat.pack(pady=PADDING)
 
     # Hungry sprites and interval
-    frame_ani_hungry, sprite_hungry_paths, var_ani_hungry_selection, entry_ani_hungry_interval = create_animation_entry(frame_aniwindow, "Hungry Animation Frame(s):", pick_file, 
+    frame_ani_hungry, sprite_hungry_paths, var_ani_hungry_selection, entry_ani_hungry_interval = create_animation_entry(window_anisettings, "Hungry Animation Frame(s):", pick_file, 
                                                                                                            default_value= HUNGRY_SPRITE, 
                                                                                                            default_interval= SPRITE_INTERVAL, 
                                                                                                            font_default= FONT_DEFALT, 
@@ -195,18 +191,33 @@ def open_anisettings():
                                                                                                            default_width=WIDTH)
     frame_ani_hungry.pack(pady=PADDING)
 
-    frame_aniwindow.pack(pady=PADDING)
+    # Play sprites and interval
+    frame_ani_pet, sprite_pet_paths, var_ani_pet_selection, entry_ani_pet_interval = create_animation_entry(window_anisettings, "Pet / Play Animation Frame(s):", pick_file, 
+                                                                                                           default_value= PET_SPRITE, 
+                                                                                                           default_interval= SPRITE_INTERVAL, 
+                                                                                                           font_default= FONT_DEFALT, 
+                                                                                                           font_bold= FONT_BOLD,
+                                                                                                           default_width=WIDTH)
+    frame_ani_pet.pack(pady=PADDING)
 
     def close_anisettings():
-        global window_anisettings_open, sprite_idle_interval, sprite_walk_interval, sprite_eat_interval
+        global window_anisettings_open, sprite_idle_interval, sprite_walk_interval, sprite_eat_interval, sprite_hungry_interval, sprite_pet_interval
 
         window_anisettings_open = False
         sprite_idle_interval = get_with_default(entry_ani_idle_interval, SPRITE_INTERVAL, float)
         sprite_walk_interval = get_with_default(entry_ani_walk_interval, SPRITE_INTERVAL, float)
         sprite_eat_interval = get_with_default(entry_ani_eat_interval, SPRITE_INTERVAL, float)
+        sprite_hungry_interval = get_with_default(entry_ani_hungry_interval, SPRITE_INTERVAL, float)
+        sprite_pet_interval = get_with_default(entry_ani_pet_interval, SPRITE_INTERVAL, float)
+
         window_anisettings.destroy()
     
+    # Closing the window
+    button_close = tk.Button(window_anisettings, text="Save & close", 
+                                command=close_anisettings)
+    button_close.pack()
     window_anisettings.protocol("WM_DELETE_WINDOW", close_anisettings)
+
 
 frame_ani = ttk.Frame(master=root)
 label_ani = ttk.Label(master=frame_ani, text="Animation Frames [GIF or PNG]", font=FONT_BOLD)
@@ -229,6 +240,7 @@ frame_chromakey.pack(pady=PADDING)
 action_idle_interval = ACTION_IDLE_INTERVAL
 action_idle_treshold = ACTION_IDLE_TRESHOLD
 action_eat_treshold = ACTION_EAT_TRESHOLD
+action_pet_treshold = ACTION_PET_TRESHOLD
 
 hunger_decay_interval = HUNGER_DECAY_INTERVAL
 hunger_decay_rate = HUNGER_DECAY_RATE
@@ -247,31 +259,8 @@ def open_additionalsettings():
         return
     
     window_additionalsettings_open = True
-    window_additionalsettings = tk.Toplevel(master=root)
+    window_additionalsettings = tk.Toplevel(master=root, padx=10, pady=10)
     window_additionalsettings.title("Additional Settings")
-    window_additionalsettings.geometry("400x500")
-
-    label_warning = tk.Label(master=window_additionalsettings, text="CLOSE THIS BEFORE LAUNCHING PET!", font=FONT_BOLD)
-    label_warning.pack(pady=PADDING)
-
-    def close_additionalsettings():
-        global window_additionalsettings_open, action_idle_interval, action_idle_treshold, action_eat_treshold, hunger_decay_interval, hunger_decay_rate, hunger_recover_rate
-
-        window_additionalsettings_open = False
-
-        action_idle_interval = get_with_default(entry_action_idle_interval, ACTION_IDLE_INTERVAL)
-        action_idle_treshold = ( get_with_default(entry_action_idle_tresholdleft, ACTION_IDLE_TRESHOLD[0]),
-                                 get_with_default(entry_action_idle_tresholdright, ACTION_IDLE_TRESHOLD[1]) )
-        
-        action_eat_treshold = get_with_default(entry_action_eat_treshold, ACTION_EAT_TRESHOLD)
-        
-        hunger_decay_interval = get_with_default(entry_hunger_decay_interval, HUNGER_DECAY_INTERVAL)
-        hunger_decay_rate = get_with_default(entry_hunger_decay_rate, HUNGER_DECAY_RATE)
-        hunger_recover_rate = get_with_default(entry_hunger_recover_rate, HUNGER_RECOVER_RATE)
-
-        window_additionalsettings.destroy()
-
-    window_additionalsettings.protocol("WM_DELETE_WINDOW", close_additionalsettings)
 
     # Action idle interval entry
     frame_action_idle_interval, (entry_action_idle_interval) = create_general_entry(window_additionalsettings, "Idle action interval (in seconds):", 1, 
@@ -294,6 +283,13 @@ def open_additionalsettings():
                                                                                     font_default= FONT_DEFALT)
     frame_action_eat_treshold.pack(pady=PADDING)
 
+    # Action pet treshhold entry
+    frame_action_pet_treshold, (entry_action_pet_treshold)  = create_general_entry(window_additionalsettings, "Chance for petting animation to be repeated\n(1 very likely - 10 never):", 1, 
+                                                                                    default_value= ACTION_PET_TRESHOLD, 
+                                                                                    font_bold= FONT_BOLD, 
+                                                                                    font_default= FONT_DEFALT)
+    frame_action_pet_treshold.pack(pady=PADDING)
+
     # Hunger decay interval entry
     frame_hunger_decay_interval, (entry_hunger_decay_interval) = create_general_entry(window_additionalsettings, "Hunger drain interval (in seconds):", 1, 
                                                                           default_value= HUNGER_DECAY_INTERVAL, 
@@ -314,6 +310,30 @@ def open_additionalsettings():
                                                                   font_bold= FONT_BOLD, 
                                                                   font_default= FONT_DEFALT)
     frame_hunger_recover_rate.pack(pady=PADDING)
+
+    def close_additionalsettings():
+        global window_additionalsettings_open, action_idle_interval, action_idle_treshold, action_eat_treshold, action_pet_treshold, hunger_decay_interval, hunger_decay_rate, hunger_recover_rate
+
+        window_additionalsettings_open = False
+
+        action_idle_interval = get_with_default(entry_action_idle_interval, ACTION_IDLE_INTERVAL)
+        action_idle_treshold = ( get_with_default(entry_action_idle_tresholdleft, ACTION_IDLE_TRESHOLD[0]),
+                                 get_with_default(entry_action_idle_tresholdright, ACTION_IDLE_TRESHOLD[1]) )
+        
+        action_eat_treshold = get_with_default(entry_action_eat_treshold, ACTION_EAT_TRESHOLD)
+        action_pet_treshold = get_with_default(entry_action_pet_treshold, ACTION_EAT_TRESHOLD)
+        
+        hunger_decay_interval = get_with_default(entry_hunger_decay_interval, HUNGER_DECAY_INTERVAL)
+        hunger_decay_rate = get_with_default(entry_hunger_decay_rate, HUNGER_DECAY_RATE)
+        hunger_recover_rate = get_with_default(entry_hunger_recover_rate, HUNGER_RECOVER_RATE)
+
+        window_additionalsettings.destroy()
+
+    # Close and save
+    button_close = tk.Button(window_additionalsettings, text="Save & close", 
+                                command=close_additionalsettings)
+    button_close.pack()
+    window_additionalsettings.protocol("WM_DELETE_WINDOW", close_additionalsettings)
 
 button_settings = ttk.Button(root, text="Additional Settings...", command=open_additionalsettings)
 button_settings.pack(pady=10)
@@ -407,10 +427,15 @@ def create_pet(pet_container:list):
         "sprite_hungry_path": resize(sprite_hungry_paths,  
                               (size_x, size_y),
                                 (name, "hungry")),
+        "sprite_pet_interval" :sprite_pet_interval,
+        "sprite_pet_path": resize(sprite_pet_paths,  
+                              (size_x, size_y),
+                                (name, "pet")),
         "chroma_key": chromakey,
         "action_idle_interval" : float(action_idle_interval) if action_idle_interval else ACTION_IDLE_INTERVAL,
         "action_idle_treshold" : tuple(action_idle_treshold) if action_idle_treshold else ACTION_IDLE_TRESHOLD,
         "action_eat_treshold": action_eat_treshold,
+        "action_pet_treshold": action_pet_treshold,
         "save_path" : str(save_path),
         "hunger": 100,
         "hunger_max": 100,

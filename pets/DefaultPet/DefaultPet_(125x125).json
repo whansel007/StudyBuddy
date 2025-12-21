@@ -1,5 +1,5 @@
 {
-    "user": "User",
+    "user": "William",
     "name": "DefaultPet",
     "prompt": "Your name is PET and you are a desktop pet. Call your user 'User'.",
     "screensize": [
@@ -58,6 +58,19 @@
         "pets\\DefaultPet\\hungry\\hungry_125x125_(1).png",
         "pets\\DefaultPet\\hungry\\hungry_125x125_(2).png"
     ],
+    "sprite_pet_interval": 0.1,
+    "sprite_pet_path": [
+        "pets\\DefaultPet\\pet\\pet_125x125_(0).png",
+        "pets\\DefaultPet\\pet\\pet_125x125_(1).png",
+        "pets\\DefaultPet\\pet\\pet_125x125_(2).png",
+        "pets\\DefaultPet\\pet\\pet_125x125_(3).png",
+        "pets\\DefaultPet\\pet\\pet_125x125_(4).png",
+        "pets\\DefaultPet\\pet\\pet_125x125_(5).png",
+        "pets\\DefaultPet\\pet\\pet_125x125_(6).png",
+        "pets\\DefaultPet\\pet\\pet_125x125_(7).png",
+        "pets\\DefaultPet\\pet\\pet_125x125_(8).png",
+        "pets\\DefaultPet\\pet\\pet_125x125_(9).png"
+    ],
     "chroma_key": "#808080",
     "action_idle_interval": 3.0,
     "action_idle_treshold": [
@@ -65,10 +78,11 @@
         5
     ],
     "action_eat_treshold": 5,
+    "action_pet_treshold": 3,
     "save_path": "pets\\DefaultPet\\DefaultPet_(125x125).json",
-    "hunger": 100,
+    "hunger": 12,
     "hunger_max": 100,
     "hunger_decay_rate": 1,
-    "hunger_decay_interval": 60,
+    "hunger_decay_interval": 10,
     "hunger_recover_rate": 25
 }
