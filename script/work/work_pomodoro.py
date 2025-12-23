@@ -20,161 +20,130 @@ class PomodoroTimer:
         self.EARN_RATIO = 5
 
         # Global Settings & State ===
-        self.app_state = {
-            "mode": "Classic",
-            "rounds": 0,
-            "break_budget_seconds": 0,
-            "timer_id": None,
-            "current_session": "idle",  # idle, work_down, work_up, break_down
-        }
+        self.mode = "Classic"
+        self.session = "idle"
+        self.rounds = 0
+
+        self.main_timer = 0
+
+        self.budget = 0
 
         self.timer_settings = {
             "Classic": {"work": self.WORK_MIN, 
-                        "short_break": self.SHORT_BREAK_MIN, 
-                        "long_break": self.LONG_BREAK_MIN},
-            "Budget": {"earn_ratio": self.EARN_RATIO}
+                        "short break": self.SHORT_BREAK_MIN, 
+                        "long break": self.LONG_BREAK_MIN},
+            "Budget": {"earn ratio": self.EARN_RATIO}
         }
 
-        # --- UI SETUP ---
+        # UI Setup ===
         self.window = tk.Toplevel(master)
         self.window.title("Pomodoro")
         self.window.config(padx=25, pady=0, bg=self.YELLOW)
         self.window.attributes('-topmost', True)
 
-        self.title_label = tk.Label(self.window, text="Timer", fg=self.GREEN, bg=self.YELLOW, font=(self.FONT_NAME, 50))
-        self.title_label.grid(column=0, row=0, columnspan=3, pady=5, sticky="ew")
+        self.label_title = tk.Label(self.window, text="Timer", fg=self.GREEN, bg=self.YELLOW, font=(self.FONT_NAME, 50))
+        self.label_title.grid(column=0, row=0, columnspan=3, pady=5, sticky="ew")
 
-        self.timer_text_label = tk.Label(self.window, text="00:00", fg="white", bg=self.GREEN, font=(self.FONT_NAME, 35, "bold"))
-        self.timer_text_label.grid(column=0, row=1, columnspan=3, pady=20, ipady=10, ipadx=10, sticky="ew")
+        self.label_timer = tk.Label(self.window, text="00:00", fg="white", bg=self.GREEN, font=(self.FONT_NAME, 35, "bold"))
+        self.label_timer.grid(column=0, row=1, columnspan=3, pady=20, ipady=10, ipadx=10, sticky="ew")
 
-        self.settings_button = tk.Button(self.window, text="Settings", highlightthickness=0, command=self.open_settings_window)
-        self.settings_button.grid(column=1, row=3, pady=10)
+        self.button_settings = tk.Button(self.window, text="Settings", highlightthickness=0, command=self.open_settings_window)
+        self.button_settings.grid(column=2, row=3, pady=10)
 
-        self.start_button = tk.Button(self.window, text="Start", highlightthickness=0, command=self.handle_start_button)
-        self.start_button.grid(column=2, row=3)
+        self.button_start = tk.Button(self.window, text="Start", highlightthickness=0, command=self.handle_start_button)
+        self.button_start.grid(column=1, row=3)
 
-        self.reset_button = tk.Button(self.window, text="Reset", highlightthickness=0, command=self.reset_timer)
-        self.reset_button.grid(column=0, row=3)
+        self.buttonn_reset = tk.Button(self.window, text="Reset", highlightthickness=0, command=self.reset_timer)
+        self.buttonn_reset.grid(column=0, row=3)
 
-        self.check_marks = tk.Label(self.window, fg=self.BLUE, bg=self.YELLOW, font=(self.FONT_NAME, 12, "bold"))
-        self.check_marks.grid(column=1, row=4, columnspan=1)
+        self.label_extra = tk.Label(self.window, fg=self.BLUE, bg=self.YELLOW, font=(self.FONT_NAME, 12, "bold"))
+        self.label_extra.grid(column=1, row=4, columnspan=1)
 
-        self.update_ui_for_state()
+        self.update_ui()  # Initial UI initialization 
 
-    def update_ui_for_state(self):
-        session = self.app_state["current_session"]
-        mode = self.app_state["mode"]
-
-        if mode == "Classic":
-            self.check_marks.config(text="✔" * self.app_state["rounds"])
-            self.start_button.config(text="Start Work", state="normal")
-            if session == "idle":
-                self.title_label.config(text="Timer", fg=self.GREEN)
+    def update_ui(self):
+        print(f"Current session = {self.session}")
+        # Timer title 
+        if self.session == "idle":
+            self.label_title.config(text="Timer", fg=self.GREEN)
+            self.button_start.config(text="Start")
+        elif self.session == "work":
+            self.label_title.config(text="Work", fg=self.RED)
+            self.button_start.config(text="Finish Work")
+        elif self.session == "break":
+            self.label_title.config(text="Break", fg=self.BLUE)
+            self.button_start.config(text="Finish Break")
+        elif self.session == "long break":
+            self.label_title.config(text="Long Break", fg=self.BLUE)
+            self.button_start.config(text="Finish Long Break")
         
-        else:  # Budget Mode
-            mins, secs = divmod(self.app_state["break_budget_seconds"], 60)
-            self.check_marks.config(text=f"Budget: {int(mins):02d}:{int(secs):02d}")
+        # Timer count
+        main_mins, main_secs = divmod(self.main_timer, 60)
+        self.label_timer.config(text=f"{int(main_mins):02d}:{int(main_secs):02d}")
 
-            if session == "idle":
-                self.title_label.config(text="Timer", fg=self.GREEN)
-                if self.app_state["break_budget_seconds"] > 0:
-                    self.start_button.config(text="Start Break", state="normal")
-                else:
-                    self.start_button.config(text="Start Work", state="normal")
-            elif session == "work_up":
-                self.start_button.config(text="Stop Work", state="normal")
-            elif session == "break_down":
-                self.start_button.config(text="Stop Break", state="normal")
+        #  Extra Label UI
+        if self.mode == "Classic":
+            self.label_extra.config(text=f"Work completed:\n{math.floor(self.rounds)}")
+        else:  # Budget Mode
+            budget_mins, budget_secs = divmod(self.budget, 60)
+            self.label_extra.config(text=f"Budget: {int(budget_mins):02d}:{int(budget_secs):02d}")
 
     def handle_start_button(self):
-        session = self.app_state["current_session"]
-        mode = self.app_state["mode"]
-
-        if mode == "Classic":
-            if session == "idle":
-                self.app_state["rounds"] += 1
-                self.title_label.config(text="Work", fg=self.RED)
-                self.app_state["current_session"] = "work_down"
-                self.count_down(self.timer_settings["Classic"]["work"] * 60)
-            return
-
-        if session == "idle":
-            if self.app_state["break_budget_seconds"] > 0:
-                self.app_state["current_session"] = "break_down"
-                self.title_label.config(text="Break", fg=self.BLUE)
-                self.update_ui_for_state()
-                self.count_down(self.app_state["break_budget_seconds"])
-            else:
-                self.app_state["current_session"] = "work_up"
-                self.title_label.config(text="Work", fg=self.RED)
-                self.update_ui_for_state()
-                self.count_up(0)
-        elif session == "work_up":
-            if self.app_state["timer_id"]:
-                self.window.after_cancel(self.app_state["timer_id"])
-            self.app_state["current_session"] = "idle"
-            self.update_ui_for_state()
-            self.timer_text_label.config(text="00:00")
-        elif session == "break_down":
-            if self.app_state["timer_id"]:
-                self.window.after_cancel(self.app_state["timer_id"])
-            self.app_state["current_session"] = "idle"
-            mins, secs = map(int, self.timer_text_label.cget("text").split(":"))
-            self.app_state["break_budget_seconds"] = mins * 60 + secs
-            self.update_ui_for_state()
-            self.timer_text_label.config(text="00:00")
-
-    def count_up(self, count_seconds):
-        if count_seconds > 0 and count_seconds % 60 == 0:
-            earned_seconds = 60 / self.timer_settings["Budget"]["earn_ratio"]
-            self.app_state["break_budget_seconds"] += earned_seconds
-            self.update_ui_for_state()
-
-        minutes, secs = divmod(count_seconds, 60)
-        self.timer_text_label.config(text=f"{int(minutes):02d}:{int(secs):02d}")
-        self.app_state["timer_id"] = self.window.after(1000, self.count_up, count_seconds + 1)
-
-    def count_down(self, count_seconds):
-        minutes, secs = divmod(count_seconds, 60)
-        self.timer_text_label.config(text=f"{int(minutes):02d}:{int(secs):02d}")
-
-        if count_seconds > 0:
-            self.app_state["timer_id"] = self.window.after(1000, self.count_down, count_seconds - 1)
-        else:
-            session_type = self.app_state["current_session"]
+        
+        # Classic mode button logic 
+        if self.mode == "Classic":
             
-            if session_type == "work_down":
-                break_type = "long" if self.app_state["rounds"] % 4 == 0 else "short"
-                break_seconds = self.timer_settings["Classic"][break_type] * 60
-                self.title_label.config(text="Break", fg=self.PINK if break_type == "short" else self.BLUE)
-                self.app_state["current_session"] = "break_down"
-                self.count_down(break_seconds)
-            
-            elif session_type == "break_down":
-                self.app_state["current_session"] = "idle"
-                self.update_ui_for_state()
-                if self.app_state["mode"] == "Classic":
-                    self.app_state["rounds"] += 1
-                    self.app_state["current_session"] = "work_down"
-                    self.title_label.config(text="Work", fg=self.RED)
-                    self.update_ui_for_state()
-                    self.count_down(self.timer_settings["Classic"]["work"] * 60)
-            
-            else:
-                self.app_state["current_session"] = "idle"
-                self.update_ui_for_state()
+            # work --> break / long break
+            if self.session == "work":
+                self.rounds += 0.5
+                # Long break for every 4th break
+                if math.floor(self.rounds) % 4 == 0:
+                    self.session = "long break"
+                    self.main_timer = self.timer_settings["Classic"]["long break"] * 60
+                # Regular break otherwise 
+                else: 
+                    self.session = "break"
+                    self.main_timer = self.timer_settings["Classic"]["short break"] * 60
+
+                self.count_down(self.rounds) 
+
+            # idle / break / long break --> work
+            else: 
+                self.rounds += 0.5
+                self.session = "work"
+                self.main_timer = self.timer_settings["Classic"]["work"] * 60
+                self.count_down(self.rounds) 
+        self.update_ui()
+    
+    def count_up(self, initial_round):
+        self.main_timer += 1
+        self.update_ui()
+
+        # Only call another one in the same initial round to prevent count functions from other rounds leaking 
+        if self.rounds == initial_round: 
+            self.window.after(1000, lambda : self.count_up(initial_round))
+    
+    def count_down(self, initial_round):
+       if self.session == "idle":
+           return
+       elif self.main_timer <= 0:
+           messagebox.showerror("POMODORO TIME OUT!", "The pomodoro timer has hit 0!", parent=self.window)
+           return
+       
+       # Only execute the same initial round to prevent count functions from other rounds leaking
+       if self.rounds == initial_round and self.session != "idle": 
+            self.main_timer -= 1
+            self.update_ui()
+            self.window.after(1000, lambda : self.count_down(initial_round))
 
     def reset_timer(self):
-        if self.app_state["timer_id"]:
-            self.window.after_cancel(self.app_state["timer_id"])
-        
-        self.app_state["rounds"] = 0
-        self.app_state["timer_id"] = None
-        self.app_state["current_session"] = "idle"
-        self.app_state["break_budget_seconds"] = 0
+        self.rounds = 0
+        self.session = "idle"
+        self.main_timer = 0
+        self.budget = 0
 
-        self.timer_text_label.config(text="00:00")
-        self.update_ui_for_state()
+        self.label_timer.config(text="00:00")
+        self.update_ui()
 
     def open_settings_window(self):
         settings_window = tk.Toplevel(self.window)
@@ -183,8 +152,54 @@ class PomodoroTimer:
         settings_window.attributes('-topmost', True)
         settings_window.grab_set() # Takes the focus to this window and the widgets in it
 
+        def update_settings_entries():
+            # Get the current mode selected
+
+            if self.mode == "Classic":
+                label_1.config(text="Work (min):"); label_1.grid(row=1, column=0, sticky="w", pady=2)
+                entry_1.grid(row=1, column=1, sticky="e", pady=2)
+                entry_1.delete(0, tk.END); entry_1.insert(0, self.timer_settings["Classic"]["work"])
+
+                label_2.config(text="Short Break (min):"); label_2.grid(row=2, column=0, sticky="w", pady=2)
+                entry_2.grid(row=2, column=1, sticky="e", pady=2)
+                entry_2.delete(0, tk.END); entry_2.insert(0, self.timer_settings["Classic"]["short break"])
+
+                label_3.config(text="Long Break (min):"); label_3.grid(row=3, column=0, sticky="w", pady=2)
+                entry_3.grid(row=3, column=1, sticky="e", pady=2)
+                entry_3.delete(0, tk.END); entry_3.insert(0, self.timer_settings["Classic"]["long break"])
+
+            else: # Budget
+                label_1.config(text="Earn Ratio (work mins per 1 min break):"); label_1.grid(row=1, column=0, sticky="w", pady=2)
+                entry_1.grid(row=1, column=1, sticky="e", pady=2)
+                entry_1.delete(0, tk.END); entry_1.insert(0, self.timer_settings["Budget"]["earn ratio"])
+                
+                # Removes the other labels we don't need
+                label_2.grid_remove(); entry_2.grid_remove()
+                label_3.grid_remove(); entry_3.grid_remove()
+                
+        def save_and_close():
+            # Get the new mode chosen 
+            new_mode = mode_var.get()
+
+            try:
+                if new_mode == "Classic":
+                    self.timer_settings["Classic"]["work"] = int(entry_1.get())
+                    self.timer_settings["Classic"]["short break"] = int(entry_2.get())
+                    self.timer_settings["Classic"]["long break"] = int(entry_3.get())
+                else: # Budget
+                    self.timer_settings["Budget"]["earn ratio"] = int(entry_1.get())
+                
+                if self.mode != new_mode:
+                    self.mode = new_mode
+                    self.reset_timer()
+                
+                settings_window.destroy() # Close the window
+
+            except ValueError:
+                messagebox.showerror("Invalid Input", "Please enter a valid integer.", parent=settings_window)
+
         # Mode Setting 
-        mode_var = tk.StringVar(value=self.app_state["mode"])
+        mode_var = tk.StringVar(value=self.mode)
 
         button_classic = tk.Radiobutton(settings_window, text="Classic", 
                                         variable=mode_var, value="Classic", 
@@ -206,56 +221,10 @@ class PomodoroTimer:
         label_3 = tk.Label(settings_window, bg=self.YELLOW, font=(self.FONT_NAME, 12))
         entry_3 = tk.Entry(settings_window, width=7)
 
-        def update_settings_entries():
-            # Get the current mode selected
-            mode = mode_var.get()
-
-            if mode == "Classic":
-                label_1.config(text="Work (min):"); label_1.grid(row=1, column=0, sticky="w", pady=2)
-                entry_1.grid(row=1, column=1, sticky="e", pady=2)
-                entry_1.delete(0, tk.END); entry_1.insert(0, self.timer_settings["Classic"]["work"])
-
-                label_2.config(text="Short Break (min):"); label_2.grid(row=2, column=0, sticky="w", pady=2)
-                entry_2.grid(row=2, column=1, sticky="e", pady=2)
-                entry_2.delete(0, tk.END); entry_2.insert(0, self.timer_settings["Classic"]["short_break"])
-
-                label_3.config(text="Long Break (min):"); label_3.grid(row=3, column=0, sticky="w", pady=2)
-                entry_3.grid(row=3, column=1, sticky="e", pady=2)
-                entry_3.delete(0, tk.END); entry_3.insert(0, self.timer_settings["Classic"]["long_break"])
-
-            else: # Budget
-                label_1.config(text="Earn Ratio (work mins per 1 min break):"); label_1.grid(row=1, column=0, sticky="w", pady=2)
-                entry_1.grid(row=1, column=1, sticky="e", pady=2)
-                entry_1.delete(0, tk.END); entry_1.insert(0, self.timer_settings["Budget"]["earn_ratio"])
-                
-                # Removes the other labels we don't need
-                label_2.grid_remove(); entry_2.grid_remove()
-                label_3.grid_remove(); entry_3.grid_remove()
-                
-        def save_and_close():
-            # Get the new mode chosen 
-            new_mode = mode_var.get()
-
-            try:
-                if new_mode == "Classic":
-                    self.timer_settings["Classic"]["work"] = int(entry_1.get())
-                    self.timer_settings["Classic"]["short_break"] = int(entry_2.get())
-                    self.timer_settings["Classic"]["long_break"] = int(entry_3.get())
-                else: # Budget
-                    self.timer_settings["Budget"]["earn_ratio"] = int(entry_1.get())
-                
-                if self.app_state["mode"] != new_mode:
-                    self.app_state["mode"] = new_mode
-                    self.reset_timer()
-                
-                settings_window.destroy() # Close the window
-
-            except ValueError:
-                messagebox.showerror("Invalid Input", "Please enter a valid integer.", parent=settings_window)
-        
         update_settings_entries() # Initial update to the UI!
 
-        tk.Button(settings_window, text="Save & Close", command=save_and_close).grid(row=4, column=0, columnspan=2, pady=10)
+        button_save = tk.Button(settings_window, text="Save & Close", command=save_and_close)
+        button_save.grid(row=4, column=0, columnspan=2, pady=10)
 
 if __name__ == "__main__":
     root = tk.Tk()

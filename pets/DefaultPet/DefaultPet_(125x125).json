@@ -1,5 +1,5 @@
 {
-    "user": "William",
+    "user": "User",
     "name": "DefaultPet",
     "prompt": "Your name is PET and you are a desktop pet. Call your user 'User'.",
     "screensize": [
@@ -80,9 +80,9 @@
     "action_eat_treshold": 5,
     "action_pet_treshold": 3,
     "save_path": "pets\\DefaultPet\\DefaultPet_(125x125).json",
-    "hunger": 12,
+    "hunger": 100,
     "hunger_max": 100,
     "hunger_decay_rate": 1,
-    "hunger_decay_interval": 10,
+    "hunger_decay_interval": 60,
     "hunger_recover_rate": 25
 }
