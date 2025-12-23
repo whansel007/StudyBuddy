@@ -57,12 +57,14 @@ class PomodoroTimer:
         self.buttonn_reset.grid(column=0, row=3)
 
         self.label_extra = tk.Label(self.window, fg=self.BLUE, bg=self.YELLOW, font=(self.FONT_NAME, 12, "bold"))
-        self.label_extra.grid(column=1, row=4, columnspan=1)
+        self.label_extra.grid(column=0, row=4, columnspan=2)
+        
+        self.label_coin = tk.Label(self.window, text="Coin gained : 0",fg=self.GREEN, bg=self.YELLOW, font=(self.FONT_NAME, 12, "bold"))
+        self.label_coin.grid(column=0, row=5, columnspan=2)
 
         self.update_ui()  # Initial UI initialization 
 
     def update_ui(self):
-        print(f"Current session = {self.session}")
         # Timer title 
         if self.session == "idle":
             self.label_title.config(text="Timer", fg=self.GREEN)
@@ -83,13 +85,12 @@ class PomodoroTimer:
 
         #  Extra Label UI
         if self.mode == "Classic":
-            self.label_extra.config(text=f"Work completed:\n{math.floor(self.rounds)}")
+            self.label_extra.config(text=f"Work completed: {math.floor(self.rounds)}")
         else:  # Budget Mode
             budget_mins, budget_secs = divmod(self.budget, 60)
             self.label_extra.config(text=f"Budget: {int(budget_mins):02d}:{int(budget_secs):02d}")
 
     def handle_start_button(self):
-        
         # Classic mode button logic 
         if self.mode == "Classic":
             
@@ -113,28 +114,56 @@ class PomodoroTimer:
                 self.session = "work"
                 self.main_timer = self.timer_settings["Classic"]["work"] * 60
                 self.count_down(self.rounds) 
+
+        # Budget mode button logic 
+        else: 
+            # work --> break 
+            if self.session == "work":
+                self.rounds += 0.5
+                self.session = "break"
+                self.main_timer = self.budget
+                self.count_down(self.rounds) 
+
+            # idle / break --> work
+            else: 
+                self.rounds += 0.5
+                self.session = "work"
+                self.main_timer = 0
+                self.count_up(self.rounds) 
         self.update_ui()
     
     def count_up(self, initial_round):
-        self.main_timer += 1
-        self.update_ui()
-
-        # Only call another one in the same initial round to prevent count functions from other rounds leaking 
+        # When timer is reset to idle session, terminate the function
+        if self.session == "idle":
+            return
+        
+        # Only execute the same initial round to prevent count functions from other rounds leaking
         if self.rounds == initial_round: 
+            self.main_timer += 1
+            self.budget = self.main_timer // (self.timer_settings["Budget"]["earn ratio"])
+            self.update_ui()
+
             self.window.after(1000, lambda : self.count_up(initial_round))
     
     def count_down(self, initial_round):
-       if self.session == "idle":
+       # When timer is reset to idle session, terminate the function
+        if self.session == "idle":
            return
-       elif self.main_timer <= 0:
-           messagebox.showerror("POMODORO TIME OUT!", "The pomodoro timer has hit 0!", parent=self.window)
+
+        if self.main_timer <= 0:
+           messagebox.showwarning("POMODORO TIME OUT!", "The pomodoro timer has hit 0!", parent=self.window)
            return
        
        # Only execute the same initial round to prevent count functions from other rounds leaking
-       if self.rounds == initial_round and self.session != "idle": 
-            self.main_timer -= 1
-            self.update_ui()
-            self.window.after(1000, lambda : self.count_down(initial_round))
+        if self.rounds == initial_round: 
+           self.main_timer -= 1
+           
+           if self.mode == "Budget":
+               self.budget -= 1
+           
+           self.update_ui()
+
+           self.window.after(1000, lambda : self.count_down(initial_round))
 
     def reset_timer(self):
         self.rounds = 0
@@ -152,10 +181,11 @@ class PomodoroTimer:
         settings_window.attributes('-topmost', True)
         settings_window.grab_set() # Takes the focus to this window and the widgets in it
 
-        def update_settings_entries():
-            # Get the current mode selected
+        # The mode variable for the setting window to not conflict with current active mode
+        mode_var = tk.StringVar(value=self.mode)
 
-            if self.mode == "Classic":
+        def update_settings_entries():
+            if mode_var.get() == "Classic":
                 label_1.config(text="Work (min):"); label_1.grid(row=1, column=0, sticky="w", pady=2)
                 entry_1.grid(row=1, column=1, sticky="e", pady=2)
                 entry_1.delete(0, tk.END); entry_1.insert(0, self.timer_settings["Classic"]["work"])
@@ -189,6 +219,7 @@ class PomodoroTimer:
                 else: # Budget
                     self.timer_settings["Budget"]["earn ratio"] = int(entry_1.get())
                 
+                # Only reset timer if it's a different mode, otherwise the changes will be applied next session
                 if self.mode != new_mode:
                     self.mode = new_mode
                     self.reset_timer()
@@ -199,7 +230,6 @@ class PomodoroTimer:
                 messagebox.showerror("Invalid Input", "Please enter a valid integer.", parent=settings_window)
 
         # Mode Setting 
-        mode_var = tk.StringVar(value=self.mode)
 
         button_classic = tk.Radiobutton(settings_window, text="Classic", 
                                         variable=mode_var, value="Classic", 
