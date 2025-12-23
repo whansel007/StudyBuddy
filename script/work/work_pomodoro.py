@@ -3,8 +3,8 @@ from tkinter import messagebox
 import math
 
 class PomodoroTimer:
-    def __init__(self, master):
-        # UI Constant ====
+    def __init__(self, master, work_callback, state_callback):
+        # UI Constant 
         self.PINK = "#e2979c"
         self.RED = "#e7305b"
         self.GREEN = "#9bdeac"
@@ -13,13 +13,17 @@ class PomodoroTimer:
 
         self.FONT_NAME = "Comic Sans MS"
         
-        # Default Constant ===
+        # Default Constant 
         self.WORK_MIN = 25
         self.SHORT_BREAK_MIN = 5
         self.LONG_BREAK_MIN = 20
         self.EARN_RATIO = 5
 
-        # Global Settings & State ===
+        # Callbacks 
+        self.work_callback = work_callback
+        self.state_callback = state_callback
+
+        # Global Settings & State 
         self.mode = "Classic"
         self.session = "idle"
         self.rounds = 0
@@ -27,6 +31,7 @@ class PomodoroTimer:
         self.main_timer = 0
 
         self.budget = 0
+        self.coins = 0
 
         self.timer_settings = {
             "Classic": {"work": self.WORK_MIN, 
@@ -35,7 +40,7 @@ class PomodoroTimer:
             "Budget": {"earn ratio": self.EARN_RATIO}
         }
 
-        # UI Setup ===
+        # UI Setup 
         self.window = tk.Toplevel(master)
         self.window.title("Pomodoro")
         self.window.config(padx=25, pady=0, bg=self.YELLOW)
@@ -61,6 +66,9 @@ class PomodoroTimer:
         
         self.label_coin = tk.Label(self.window, text="Coin gained : 0",fg=self.GREEN, bg=self.YELLOW, font=(self.FONT_NAME, 12, "bold"))
         self.label_coin.grid(column=0, row=5, columnspan=2)
+
+        self.button_cashout = tk.Button(self.window, text="Cash out", highlightthickness=0, command=self.cash_out)
+        self.button_cashout.grid(column=2, row=5)
 
         self.update_ui()  # Initial UI initialization 
 
@@ -89,6 +97,8 @@ class PomodoroTimer:
         else:  # Budget Mode
             budget_mins, budget_secs = divmod(self.budget, 60)
             self.label_extra.config(text=f"Budget: {int(budget_mins):02d}:{int(budget_secs):02d}")
+        
+        self.label_coin.config(text=f"Coin gained : {self.coins}")
 
     def handle_start_button(self):
         # Classic mode button logic 
@@ -131,6 +141,12 @@ class PomodoroTimer:
                 self.main_timer = 0
                 self.count_up(self.rounds) 
         self.update_ui()
+        
+        # Sync pet state
+        if self.session == "work":
+            self.state_callback("work")
+        else:
+            self.state_callback("idle")
     
     def count_up(self, initial_round):
         # When timer is reset to idle session, terminate the function
@@ -141,6 +157,11 @@ class PomodoroTimer:
         if self.rounds == initial_round: 
             self.main_timer += 1
             self.budget = self.main_timer // (self.timer_settings["Budget"]["earn ratio"])
+
+            # Award coin every minute
+            if self.main_timer % 60 == 0:
+                self.coins += 1
+
             self.update_ui()
 
             self.window.after(1000, lambda : self.count_up(initial_round))
@@ -157,9 +178,13 @@ class PomodoroTimer:
        # Only execute the same initial round to prevent count functions from other rounds leaking
         if self.rounds == initial_round: 
            self.main_timer -= 1
-           
+
            if self.mode == "Budget":
                self.budget -= 1
+           
+           # Award coin every minute during work session
+           if self.session == "work" and self.main_timer % 60 == 0:
+               self.coins += 1
            
            self.update_ui()
 
@@ -170,9 +195,20 @@ class PomodoroTimer:
         self.session = "idle"
         self.main_timer = 0
         self.budget = 0
+        self.coins = 0
 
         self.label_timer.config(text="00:00")
         self.update_ui()
+        self.state_callback("idle")
+
+    def cash_out(self):
+        if self.coins > 0:
+            self.work_callback(self.coins)
+            self.coins = 0
+            self.update_ui()
+            messagebox.showinfo("Cash Out", "Coins transferred to your inventory!", parent=self.window)
+        else:
+            messagebox.showinfo("Cash Out", "No coins to cash out!", parent=self.window)
 
     def open_settings_window(self):
         settings_window = tk.Toplevel(self.window)

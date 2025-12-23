@@ -36,7 +36,7 @@ def create_animation_entry(parent, label_text:str, button_command, default_value
     label_interval.pack(side="left",pady=default_width)
     entry_interval.pack(side="right",pady=default_width)
     
-    return frame, paths, var_selection, entry_interval
+    return frame, paths, entry_interval
 
 def create_general_entry(parent, label_text:str, num_entries:int=1, default_value:tuple = (),font_bold:tuple=None, font_default:tuple=None, width_value=20):
     """

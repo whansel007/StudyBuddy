@@ -36,6 +36,9 @@ class pet():
         self.sprite_pet_path = info_dict["sprite_pet_path"]
         self.sprite_pet_interval = info_dict["sprite_pet_interval"]
 
+        self.sprite_work_path = info_dict["sprite_work_path"]
+        self.sprite_work_interval = info_dict["sprite_work_interval"]
+
         self.chroma_key = info_dict["chroma_key"]
         self.prompt = info_dict["prompt"]
 
@@ -57,6 +60,7 @@ class pet():
 
         # Call back
         self.feed_callback = callback_dict["feed_callback"]
+        self.work_callback = callback_dict["work_callback"]
 
         # Dynamic Data
         self.state = "idle"
@@ -120,11 +124,9 @@ class pet():
        
         # Work Pomodoro menu
         self.pet_menu.add_command(label="Pomodoro", command=self.open_pomodoro)
-
-        # Work Transcribe menu
-        self.transcribe_submenu = tk.Menu()
         self.pet_menu.add_separator()
         
+        # Stasis and Cancel menu
         self.pet_menu.add_command(label="Send to stasis", command=self.close_pet)
         self.pet_menu.add_separator()
         self.pet_menu.add_command(label="Cancel")
@@ -179,7 +181,7 @@ class pet():
     
     def open_pomodoro(self):
         print(f"{self.name} Opening pomodoro window!")
-        self.pomodoro_window = PomodoroTimer(self.window)
+        self.pomodoro_window = PomodoroTimer(self.window, self.work_callback, self.change_state)
 
 
 
@@ -256,6 +258,10 @@ class pet():
             self.change_movement("idle")
             self.change_animation("pet")
             #print(f"{self.name} is being pet!")
+        
+        elif self.state == "work":
+            self.change_movement("idle")
+            self.change_animation("work")
     
 
     
@@ -338,6 +344,10 @@ class pet():
         elif self.state_ani == "pet":
             self.sprite_current = self.sprite_pet_path
             self.sprite_interval = self.sprite_pet_interval
+
+        elif self.state_ani == "work":
+            self.sprite_current = self.sprite_work_path
+            self.sprite_interval = self.sprite_work_interval
 
         print(f"Current animation set = {self.sprite_current}")
     

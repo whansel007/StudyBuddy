@@ -71,6 +71,13 @@
         "pets\\DefaultPet\\pet\\pet_125x125_(8).png",
         "pets\\DefaultPet\\pet\\pet_125x125_(9).png"
     ],
+    "sprite_work_interval": 0.1,
+    "sprite_work_path": [
+        "pets\\DefaultPet\\work\\work_125x125_(0).png",
+        "pets\\DefaultPet\\work\\work_125x125_(1).png",
+        "pets\\DefaultPet\\work\\work_125x125_(2).png",
+        "pets\\DefaultPet\\work\\work_125x125_(3).png"
+    ],
     "chroma_key": "#808080",
     "action_idle_interval": 3.0,
     "action_idle_treshold": [
@@ -80,7 +87,7 @@
     "action_eat_treshold": 5,
     "action_pet_treshold": 3,
     "save_path": "pets\\DefaultPet\\DefaultPet_(125x125).json",
-    "hunger": 99,
+    "hunger": 100,
     "hunger_max": 100,
     "hunger_decay_rate": 1,
     "hunger_decay_interval": 60,
