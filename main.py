@@ -46,7 +46,7 @@ ACTION_IDLE_TRESHOLD = (-5,5)
 ACTION_EAT_TRESHOLD = 5
 ACTION_PET_TRESHOLD = 3
 
-HUNGER_DECAY_INTERVAL = 60
+HUNGER_DECAY_INTERVAL = 180 
 HUNGER_DECAY_RATE = 1
 HUNGER_RECOVER_RATE = 25
 
@@ -351,7 +351,6 @@ def open_additionalsettings():
 
 button_settings = ttk.Button(root, text="Additional Settings...", command=open_additionalsettings)
 button_settings.pack(pady=10)
-
 
 
 # PET FEEDBACK ACTION ===

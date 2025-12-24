@@ -125,6 +125,13 @@ class pet():
         # Work Pomodoro menu
         self.pet_menu.add_command(label="Pomodoro", command=self.open_pomodoro)
         self.pet_menu.add_separator()
+
+        # Push menu
+        self.push_menu = tk.Menu(self.pet_menu, tearoff=0)
+        self.push_menu.add_command(label="Push Left", command=lambda: self.push_pet("left"))
+        self.push_menu.add_command(label="Push Right", command=lambda: self.push_pet("right"))
+        self.pet_menu.add_cascade(label="Push", menu=self.push_menu)
+        self.pet_menu.add_separator()
         
         # Stasis and Cancel menu
         self.pet_menu.add_command(label="Send to stasis", command=self.close_pet)
@@ -182,7 +189,12 @@ class pet():
     def open_pomodoro(self):
         print(f"{self.name} Opening pomodoro window!")
         self.pomodoro_window = PomodoroTimer(self.window, self.work_callback, self.change_state)
-
+    
+    def push_pet(self, direction):
+        if direction == "left":
+            self.x -= 100
+        else:
+            self.x += 100
 
 
     # PET STATE + HUNGER  ===

@@ -90,6 +90,6 @@
     "hunger": 100,
     "hunger_max": 100,
     "hunger_decay_rate": 1,
-    "hunger_decay_interval": 60,
+    "hunger_decay_interval": 180,
     "hunger_recover_rate": 25
 }

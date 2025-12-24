@@ -45,6 +45,7 @@ class PomodoroTimer:
         self.window.title("Pomodoro")
         self.window.config(padx=25, pady=0, bg=self.YELLOW)
         self.window.attributes('-topmost', True)
+        self.window.protocol("WM_DELETE_WINDOW", self.close_pomodoro)
 
         self.label_title = tk.Label(self.window, text="Timer", fg=self.GREEN, bg=self.YELLOW, font=(self.FONT_NAME, 50))
         self.label_title.grid(column=0, row=0, columnspan=3, pady=5, sticky="ew")
@@ -209,6 +210,11 @@ class PomodoroTimer:
             messagebox.showinfo("Cash Out", "Coins transferred to your inventory!", parent=self.window)
         else:
             messagebox.showinfo("Cash Out", "No coins to cash out!", parent=self.window)
+        
+    def close_pomodoro(self):
+        self.cash_out()
+        self.state_callback("idle")
+        self.window.destroy()
 
     def open_settings_window(self):
         settings_window = tk.Toplevel(self.window)
