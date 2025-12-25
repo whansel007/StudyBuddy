@@ -1,7 +1,7 @@
 {
     "user": "User",
     "name": "DefaultPet",
-    "prompt": "Your name is PET and you are a desktop pet. Call your user 'User'.",
+    "prompt": "You are a cute cat desktop pet talking to the user. Call your user 'User'. ",
     "screensize": [
         1920,
         1080
@@ -68,8 +68,7 @@
         "pets\\DefaultPet\\pet\\pet_125x125_(5).png",
         "pets\\DefaultPet\\pet\\pet_125x125_(6).png",
         "pets\\DefaultPet\\pet\\pet_125x125_(7).png",
-        "pets\\DefaultPet\\pet\\pet_125x125_(8).png",
-        "pets\\DefaultPet\\pet\\pet_125x125_(9).png"
+        "pets\\DefaultPet\\pet\\pet_125x125_(8).png"
     ],
     "sprite_work_interval": 0.1,
     "sprite_work_path": [

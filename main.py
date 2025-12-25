@@ -18,11 +18,11 @@ FONT_BOLD = ("Comic Sans MS", 12, "bold")
 # Default Configs ===
 USER_NAME = "User"
 USER_INVPATH = str(Path("asset") / "user_inv.json")
-USER_INV = { "coin": 0,
-             "food": 0}
+USER_INV = { "coin": 10,
+             "food": 5}
 
 NAME = "DefaultPet"
-PROMPT = f"Your name is PET and you are a desktop pet. Call your user '{USER_NAME}'."
+PROMPT = f"You are a cute cat desktop pet talking to the user."
 
 POS_X = -150
 POS_Y = -150
@@ -166,7 +166,7 @@ def open_anisettings():
                                                                                                                font_default= FONT_DEFALT, 
                                                                                                                font_bold= FONT_BOLD,
                                                                                                                default_width= WIDTH)
-    frame_ani_idle.pack()
+    frame_ani_idle.grid(column=0, row=0)
 
     # Walk sprites and interval
     frame_ani_walk, sprite_walk_paths, entry_ani_walk_interval = create_animation_entry(window_anisettings, "Walk Animation Frame(s):", pick_file, 
@@ -175,7 +175,7 @@ def open_anisettings():
                                                                                                                font_default= FONT_DEFALT, 
                                                                                                                font_bold= FONT_BOLD,
                                                                                                                default_width= WIDTH)
-    frame_ani_walk.pack(pady=PADDING)
+    frame_ani_walk.grid(column=1, row=0)
 
     # Eat sprites and interval
     frame_ani_eat, sprite_eat_paths, entry_ani_eat_interval = create_animation_entry(window_anisettings, "Eat Animation Frame(s):", pick_file, 
@@ -184,7 +184,7 @@ def open_anisettings():
                                                                                                            font_default= FONT_DEFALT, 
                                                                                                            font_bold= FONT_BOLD,
                                                                                                            default_width=WIDTH)
-    frame_ani_eat.pack(pady=PADDING)
+    frame_ani_eat.grid(column=0, row=1)
 
     # Hungry sprites and interval
     frame_ani_hungry, sprite_hungry_paths, entry_ani_hungry_interval = create_animation_entry(window_anisettings, "Hungry Animation Frame(s):", pick_file, 
@@ -193,7 +193,7 @@ def open_anisettings():
                                                                                                            font_default= FONT_DEFALT, 
                                                                                                            font_bold= FONT_BOLD,
                                                                                                            default_width=WIDTH)
-    frame_ani_hungry.pack(pady=PADDING)
+    frame_ani_hungry.grid(column=1, row=1)
 
     # Play sprites and interval
     frame_ani_pet, sprite_pet_paths, entry_ani_pet_interval = create_animation_entry(window_anisettings, "Pet / Play Animation Frame(s):", pick_file, 
@@ -202,16 +202,16 @@ def open_anisettings():
                                                                                                            font_default= FONT_DEFALT, 
                                                                                                            font_bold= FONT_BOLD,
                                                                                                            default_width=WIDTH)
-    frame_ani_pet.pack(pady=PADDING)
+    frame_ani_pet.grid(column=0, row=2)
 
     # Work sprites and interval
-    frame_ani_work, sprite_pet_paths, entry_ani_work_interval = create_animation_entry(window_anisettings, "Pet / Play Animation Frame(s):", pick_file, 
+    frame_ani_work, sprite_work_paths, entry_ani_work_interval = create_animation_entry(window_anisettings, "Work Animation Frame(s):", pick_file, 
                                                                                                            default_value= WORK_SPRITE, 
                                                                                                            default_interval= SPRITE_INTERVAL, 
                                                                                                            font_default= FONT_DEFALT, 
                                                                                                            font_bold= FONT_BOLD,
                                                                                                            default_width=WIDTH)
-    frame_ani_work.pack(pady=PADDING)
+    frame_ani_work.grid(column=1, row=2)
 
     def close_anisettings():
         global window_anisettings_open, sprite_idle_interval, sprite_walk_interval, sprite_eat_interval, sprite_hungry_interval, sprite_pet_interval, sprite_work_interval
@@ -229,7 +229,7 @@ def open_anisettings():
     # Closing the window
     button_close = tk.Button(window_anisettings, text="Save & close", 
                                 command=close_anisettings)
-    button_close.pack()
+    button_close.grid(column=0,row=3)
     window_anisettings.protocol("WM_DELETE_WINDOW", close_anisettings)
 
 
@@ -421,7 +421,7 @@ def create_pet(pet_container:list):
     info_dict = {
         "user": user,
         "name": name,
-        "prompt" : prompt,
+        "prompt" : f"{prompt} Call your user '{user}'. ",
         "screensize" : screensize,
         "pos_x": pos_x,
         "pos_y": pos_y,

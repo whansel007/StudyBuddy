@@ -4,7 +4,10 @@ import json
 import random
 import time
 from PIL import Image, ImageTk
+import threading
 from script.work.work_pomodoro import PomodoroTimer
+from script.pet.pet_llmbrain import get_ollama_response
+from script.helper.chat_ui import ChatWindow, SpeechBubble
 
 class pet():
     def __init__(self, master, info_dict:dict, callback_dict:dict):
@@ -119,23 +122,26 @@ class pet():
         self.pet_menu.add_separator() 
         
         # Play menu
-        self.pet_menu.add_command(label="Pet", command=self.pet_pet)
-        self.pet_menu.add_separator()
+        self.play_menu = tk.Menu(self.pet_menu, tearoff=0)
+        self.play_menu.add_command(label="Pet", command=self.pet_pet)
+        self.play_menu.add_command(label="Talk", command=self.open_chat)
+        self.pet_menu.add_cascade(label="Play", menu=self.play_menu)
        
-        # Work Pomodoro menu
-        self.pet_menu.add_command(label="Pomodoro", command=self.open_pomodoro)
-        self.pet_menu.add_separator()
+        # Work menu
+        self.work_menu = tk.Menu(self.pet_menu, tearoff=0)
+        self.work_menu.add_command(label="Pomodoro", command=self.open_pomodoro)
+        self.pet_menu.add_cascade(label="Work", menu=self.work_menu)
 
-        # Push menu
-        self.push_menu = tk.Menu(self.pet_menu, tearoff=0)
-        self.push_menu.add_command(label="Push Left", command=lambda: self.push_pet("left"))
-        self.push_menu.add_command(label="Push Right", command=lambda: self.push_pet("right"))
-        self.pet_menu.add_cascade(label="Push", menu=self.push_menu)
+        # Control menu
+        self.control_menu = tk.Menu(self.pet_menu, tearoff=0)
+        self.control_menu.add_command(label="Sit", command=self.toggle_sit)
+        self.control_menu.add_command(label="Push Left", command=lambda: self.push_pet("left"))
+        self.control_menu.add_command(label="Push Right", command=lambda: self.push_pet("right"))
+        self.pet_menu.add_cascade(label="Control", menu=self.control_menu)
         self.pet_menu.add_separator()
         
         # Stasis and Cancel menu
         self.pet_menu.add_command(label="Send to stasis", command=self.close_pet)
-        self.pet_menu.add_separator()
         self.pet_menu.add_command(label="Cancel")
 
         self.label.configure(image=self.img)
@@ -172,7 +178,17 @@ class pet():
         hunger_text = f"Hunger: {int(self.hunger)}/{self.hunger_max}"
         self.pet_menu.entryconfig(0, label=hunger_text)
 
+        # Update Sit/Unsit label in the Control menu
+        new_label = "Unsit" if self.state == "sitting" else "Sit"
+        self.control_menu.entryconfigure(0, label=new_label)
+
         self.pet_menu.post(event.x_root, event.y_root)
+
+    def toggle_sit(self):
+        if self.state == "sitting":
+             self.change_state("idle")
+        else:
+             self.change_state("sitting")
 
     def feed_pet(self):
         if self.feed_callback():
@@ -186,6 +202,36 @@ class pet():
         print(f"Petting {self.name}!")
         self.change_state("pet")
     
+    def open_chat(self):
+        ChatWindow(self.window, self.name, self.start_chat_thread)
+
+    def start_chat_thread(self, user_message):
+        # Change state to thinking to stay still
+        self.change_state("thinking")
+        
+        # Show a "thinking" bubble immediately
+        self.thinking_bubble = SpeechBubble(self.window, ".", self.x, self.y, duration=60000, animate_dots=True)
+        
+        # Start background thread for Ollama
+        thread = threading.Thread(target=self.handle_chat, args=(user_message,))
+        thread.daemon = True
+        thread.start()
+
+    def handle_chat(self, user_message):
+        # Combine the user prompt with instruction for brevity
+        full_system_prompt = f"{self.prompt} IMPORTANT : Reply in one sentence only 10 words maximum."
+        response = get_ollama_response(full_system_prompt, user_message)
+        
+        # Close the thinking bubble and return to idle state on the main thread
+        self.window.after(0, self.finish_chat, response)
+
+    def finish_chat(self, response):
+        if hasattr(self, 'thinking_bubble') and self.thinking_bubble:
+             self.thinking_bubble.close()
+        
+        self.change_state("idle")
+        SpeechBubble(self.window, response, self.x, self.y, duration=7000)
+
     def open_pomodoro(self):
         print(f"{self.name} Opening pomodoro window!")
         self.pomodoro_window = PomodoroTimer(self.window, self.work_callback, self.change_state)
@@ -274,6 +320,14 @@ class pet():
         elif self.state == "work":
             self.change_movement("idle")
             self.change_animation("work")
+        
+        elif self.state == "thinking":
+            self.change_movement("idle")
+            self.change_animation("idle")
+        
+        elif self.state == "sitting":
+            self.change_movement("idle")
+            self.change_animation("idle")
     
 
     
@@ -379,14 +433,14 @@ class pet():
                     self.action_eat_roll = random.randint(1,10)
                     print(f"EAT ROLLED {self.action_eat_roll}")
                     if self.action_eat_roll <= self.action_eat_treshold:
-                        self.change_state("idle")
+                        self.change_state(self.previous_state)
 
                 # Special logic for pet
                 elif self.state_ani == "pet":
                     self.action_pet_roll = random.randint(1,10)
                     print(f"PET ROLLED {self.action_pet_roll}")
                     if self.action_pet_roll <= self.action_pet_treshold:
-                        self.change_state("idle")
+                        self.change_state(self.previous_state)
                 
 
             self.sprite_timestamp = time.time()
