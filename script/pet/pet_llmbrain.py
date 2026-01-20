@@ -1,3 +1,4 @@
+# Shared LLM brain for all pets
 import requests
 import json
 

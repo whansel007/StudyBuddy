@@ -1,4 +1,4 @@
-# Retruns the movement on x and y axis as a tuple
+# Handles TTS for when pet speaks to read the Ollama responses
 
-def get_current_movement():
-    return 
+def tts_say():
+    return
