@@ -2,7 +2,14 @@
 import tkinter as tk
 from tkinter import ttk
 
-def create_animation_entry(parent, label_text:str, button_command, default_value:str=None, default_interval:float = 0.1, font_default:tuple=None, font_bold:tuple = None, default_width:tuple=None):
+def create_animation_entry(parent, 
+                           label_text:str, 
+                           button_command, 
+                           default_value:str=None, 
+                           default_interval:float = 0.1, 
+                           font_default:tuple=None, 
+                           font_bold:tuple = None, 
+                           default_width:tuple=None):
     """
     Creates a frame for animation selection.
     """

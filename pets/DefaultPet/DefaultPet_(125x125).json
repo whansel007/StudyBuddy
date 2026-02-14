@@ -4,7 +4,7 @@
     "prompt": "You are a cute cat desktop pet talking to the user. Call your user 'User'. ",
     "screensize": [
         1920,
-        1080
+        1200
     ],
     "pos_x": -150,
     "pos_y": -150,
@@ -77,14 +77,36 @@
         "pets\\DefaultPet\\work\\work_125x125_(2).png",
         "pets\\DefaultPet\\work\\work_125x125_(3).png"
     ],
+    "sprite_sit_interval": 0.1,
+    "sprite_sit_path": [
+        "pets\\DefaultPet\\sit\\sit_125x125_(0).png",
+        "pets\\DefaultPet\\sit\\sit_125x125_(1).png",
+        "pets\\DefaultPet\\sit\\sit_125x125_(2).png",
+        "pets\\DefaultPet\\sit\\sit_125x125_(3).png",
+        "pets\\DefaultPet\\sit\\sit_125x125_(4).png",
+        "pets\\DefaultPet\\sit\\sit_125x125_(5).png",
+        "pets\\DefaultPet\\sit\\sit_125x125_(6).png",
+        "pets\\DefaultPet\\sit\\sit_125x125_(7).png",
+        "pets\\DefaultPet\\sit\\sit_125x125_(8).png",
+        "pets\\DefaultPet\\sit\\sit_125x125_(9).png",
+        "pets\\DefaultPet\\sit\\sit_125x125_(10).png",
+        "pets\\DefaultPet\\sit\\sit_125x125_(11).png",
+        "pets\\DefaultPet\\sit\\sit_125x125_(12).png",
+        "pets\\DefaultPet\\sit\\sit_125x125_(13).png",
+        "pets\\DefaultPet\\sit\\sit_125x125_(14).png",
+        "pets\\DefaultPet\\sit\\sit_125x125_(15).png",
+        "pets\\DefaultPet\\sit\\sit_125x125_(16).png",
+        "pets\\DefaultPet\\sit\\sit_125x125_(17).png",
+        "pets\\DefaultPet\\sit\\sit_125x125_(18).png"
+    ],
     "chroma_key": "#808080",
-    "action_idle_interval": 3.0,
-    "action_idle_treshold": [
+    "wander_interval": 3,
+    "wander_treshold": [
         -5,
         5
     ],
-    "action_eat_treshold": 5,
-    "action_pet_treshold": 3,
+    "eatloop_treshold": 5,
+    "petloop_treshold": 3,
     "save_path": "pets\\DefaultPet\\DefaultPet_(125x125).json",
     "hunger": 100,
     "hunger_max": 100,

@@ -42,16 +42,19 @@ class pet():
 
         self.sprite_work_path = info_dict["sprite_work_path"]
         self.sprite_work_interval = info_dict["sprite_work_interval"]
+        
+        self.sprite_sit_path = info_dict["sprite_sit_path"]
+        self.sprite_sit_interval = info_dict["sprite_sit_interval"]
 
         self.chroma_key = info_dict["chroma_key"]
         self.prompt = info_dict["prompt"]
 
-        self.action_idle_interval = info_dict["action_idle_interval"]
-        self.action_idle_treshold = info_dict["action_idle_treshold"]
+        self.wander_interval = info_dict["wander_interval"]
+        self.wander_treshold = info_dict["wander_treshold"]
 
-        self.action_eat_treshold = info_dict["action_eat_treshold"]
+        self.eatloop_treshold = info_dict["eatloop_treshold"]
 
-        self.action_pet_treshold = info_dict["action_pet_treshold"]
+        self.petloop_treshold = info_dict["petloop_treshold"]
         
         self.hunger = info_dict["hunger"]
         self.hunger_max = info_dict["hunger_max"]
@@ -181,8 +184,8 @@ class pet():
         self.pet_menu.entryconfig(0, label=hunger_text)
 
         # Update Sit/Unsit label in the Control menu
-        new_label = "Unsit" if self.state == "sitting" else "Sit"
-        self.control_menu.entryconfigure(0, label=new_label)
+        sit_label = "Unsit" if self.state == "sitting" else "Sit"
+        self.control_menu.entryconfigure(0, label=sit_label)
 
         self.pet_menu.post(event.x_root, event.y_root)
 
@@ -205,6 +208,7 @@ class pet():
         self.change_state("pet")
     
     def open_chat(self):
+        # Instantly creates a window parented to this pet window + passes the pet name and what to do when send is clicked 
         ChatWindow(self.window, self.name, self.start_chat_thread)
 
     def start_chat_thread(self, user_message):
@@ -284,7 +288,7 @@ class pet():
             # print(f"{self.name} is Idle!")
             self.update_hunger()
             # Randomly switchs between moving right, moving left, and idle every interval
-            if time.time() >= self.action_idle_timestamp + self.action_idle_interval:        
+            if time.time() >= self.action_idle_timestamp + self.wander_interval:        
                 self.action_idle_roll = random.randint(-10, 10)
                 print(f"ROLLED {self.action_idle_roll}")
 
@@ -292,10 +296,10 @@ class pet():
                 # -10 - - - - - T0 - - - -  0 - - - - T1 - - - - -  10
                 # =====left=======                    =====right=======
 
-                if self.action_idle_roll <= self.action_idle_treshold[0]:
+                if self.action_idle_roll <= self.wander_treshold[0]:
                     self.change_movement("left", vary_speed=True)
                     self.change_animation("left")
-                elif self.action_idle_roll >= self.action_idle_treshold[1]:
+                elif self.action_idle_roll >= self.wander_treshold[1]:
                     self.change_movement("right", vary_speed=True)
                     self.change_animation("right")
                 else:
@@ -335,7 +339,7 @@ class pet():
         
         elif self.state == "sitting":
             self.change_movement("idle")
-            self.change_animation("idle")
+            self.change_animation("sit")
     
 
     
@@ -422,6 +426,11 @@ class pet():
         elif self.state_ani == "work":
             self.sprite_current = self.sprite_work_path
             self.sprite_interval = self.sprite_work_interval
+        
+        elif self.state_ani == "sit":
+            self.sprite_current = self.sprite_sit_path
+            self.sprite_interval = self.sprite_sit_interval
+        
 
         print(f"Current animation set = {self.sprite_current}")
     
@@ -440,14 +449,14 @@ class pet():
                 if self.state_ani == "eating":
                     self.action_eat_roll = random.randint(1,10)
                     print(f"EAT ROLLED {self.action_eat_roll}")
-                    if self.action_eat_roll <= self.action_eat_treshold:
+                    if self.action_eat_roll <= self.eatloop_treshold:
                         self.change_state(self.previous_state)
 
                 # Special logic for pet
                 elif self.state_ani == "pet":
                     self.action_pet_roll = random.randint(1,10)
                     print(f"PET ROLLED {self.action_pet_roll}")
-                    if self.action_pet_roll <= self.action_pet_treshold:
+                    if self.action_pet_roll <= self.petloop_treshold:
                         self.change_state(self.previous_state)
                 
 

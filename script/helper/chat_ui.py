@@ -66,21 +66,23 @@ class ChatWindow:
         self.window.config(padx=20, pady=20, bg="#f7f5dd")
         self.window.attributes('-topmost', True)
         
+        # The function to execute when the send button is clicked
         self.on_send_callback = on_send_callback
         
-        tk.Label(self.window, text=f"What do you want to say to {pet_name}?", 
-                 bg="#f7f5dd", font=("Comic Sans MS", 12, "bold")).pack(pady=(0, 10))
+        self.label_message = tk.Label(self.window, text=f"What do you want to say to {pet_name}?",bg="#f7f5dd", font=("Comic Sans MS", 12, "bold"))
+        self.label_message.pack(pady=(0, 10))
         
-        self.entry = tk.Entry(self.window, width=40, font=("Comic Sans MS", 10))
-        self.entry.pack(pady=10)
-        self.entry.bind("<Return>", lambda e: self.send())
-        self.entry.focus_set()
+        self.entry_message = tk.Entry(self.window, width=40, font=("Comic Sans MS", 10))
+        self.entry_message.pack(pady=10)
+        self.entry_message.bind("<Return>", lambda e: self.send())
+        self.entry_message.focus_set()
         
-        tk.Button(self.window, text="Send", command=self.send, bg="#9bdeac", 
-                  font=("Comic Sans MS", 10), padx=20).pack()
+        self.button_send = tk.Button(self.window, text="Send", command=self.send, bg="#9bdeac", font=("Comic Sans MS", 10), padx=20)
+        self.button_send.pack()
 
     def send(self):
-        message = self.entry.get()
+        message = self.entry_message.get()
+        
         if message.strip():
             self.on_send_callback(message)
             self.window.destroy()
