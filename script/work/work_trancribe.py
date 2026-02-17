@@ -6,6 +6,7 @@ import tkinter as tk
 from tkinter import filedialog, messagebox, scrolledtext
 import wave
 
+# Try Importing and set to none if not installed
 try:
     from vosk import Model, KaldiRecognizer
 except Exception:
@@ -25,10 +26,13 @@ except Exception:
 
 class TranscribeWindow:
     def __init__(self, master, state_callback):
+        # Change state callback function
         self.state_callback = state_callback
+        
         self.model_path = None
         self.model = None
         self.recognizer = None
+        
         self.audio_queue = queue.Queue()
         self.listening = False
         self.stream = None
@@ -42,44 +46,45 @@ class TranscribeWindow:
         self.window.attributes("-topmost", True)
         self.window.protocol("WM_DELETE_WINDOW", self.close_window)
 
-        tk.Label(
-            self.window,
-            text="Transcription (mic or WAV file)",
-            bg="#f7f5dd",
-            font=("Comic Sans MS", 12, "bold"),
-        ).pack(pady=(0, 10))
+        # UI SETUP ===
+        self.label_title = tk.Label(
+            self.window, 
+            text="Transcription (mic or WAV file)", 
+            bg="#f7f5dd", 
+            font=("Comic Sans MS", 12, "bold"))
+        self.label_title.pack(pady=(0, 10))
 
         self.status_var = tk.StringVar(value="Ready.")
         self.label_status = tk.Label(
-            self.window,
-            textvariable=self.status_var,
-            bg="#f7f5dd",
-            font=("Comic Sans MS", 10),
-        )
+            self.window, 
+            textvariable=self.status_var, 
+            bg="#f7f5dd", 
+            font=("Comic Sans MS", 10))
         self.label_status.pack(pady=(0, 10))
 
-        self.button_model = tk.Button(
-            self.window,
-            text="Choose Offline Model Folder",
-            command=self.pick_model,
+        self.button_pick_vosk_model = tk.Button(
+            self.window, 
+            text="Choose Vosk Model Folder", 
+            command=self.pick_vosk_model, 
             bg="#9bdeac",
-            font=("Comic Sans MS", 10),
-            padx=20,
-        )
-        self.button_model.pack(pady=(0, 10))
+            font=("Comic Sans MS", 10))
+        self.button_pick_vosk_model.pack(pady=(0, 10))
 
         self.engine_var = tk.StringVar(value="vosk")
-        engine_frame = tk.Frame(self.window, bg="#f7f5dd")
-        engine_frame.pack(pady=(0, 10))
-        tk.Label(
-            engine_frame,
+        self.engine_frame = tk.Frame(
+            self.window, 
+            bg="#f7f5dd")
+        self.engine_frame.pack(pady=(0, 10))
+        
+        self.engine_label = tk.Label(
+            self.engine_frame, 
             text="Engine:",
-            bg="#f7f5dd",
-            font=("Comic Sans MS", 10),
-        ).pack(side="left", padx=(0, 10))
+            bg="#f7f5dd", 
+            font=("Comic Sans MS", 10))
+        self.engine_label.pack(side="left", padx=(0, 10))
+        
         self.engine_buttons = [
-            tk.Radiobutton(
-                engine_frame,
+            tk.Radiobutton(self.engine_frame,
                 text="Vosk (offline)",
                 value="vosk",
                 variable=self.engine_var,
@@ -88,7 +93,7 @@ class TranscribeWindow:
                 font=("Comic Sans MS", 10),
             ),
             tk.Radiobutton(
-                engine_frame,
+                self.engine_frame,
                 text="Google (online)",
                 value="google",
                 variable=self.engine_var,
@@ -101,24 +106,23 @@ class TranscribeWindow:
             button.pack(side="left", padx=5)
 
         self.button_listen = tk.Button(
-            self.window,
-            text="Start Mic",
-            command=self.toggle_listen,
-            bg="#87CEEB",
-            font=("Comic Sans MS", 10),
-            padx=20,
-        )
+            self.window, 
+            text="Start Mic", 
+            command=self.toggle_listen, 
+            bg="#87CEEB", 
+            font=("Comic Sans MS", 10), 
+            padx=20,)
         self.button_listen.pack(pady=(0, 10))
 
-        self.button_pick = tk.Button(
+        self.button_filetranscribe = tk.Button(
             self.window,
             text="Transcribe WAV File",
-            command=self.pick_file,
+            command=self.start_file_transcribe,
             bg="#c3c3c3",
             font=("Comic Sans MS", 10),
             padx=20,
         )
-        self.button_pick.pack(pady=(0, 10))
+        self.button_filetranscribe.pack(pady=(0, 10))
 
         self.text_output = scrolledtext.ScrolledText(
             self.window,
@@ -137,20 +141,11 @@ class TranscribeWindow:
         )
         self.button_close.pack()
         self.update_engine_controls()
-
-    def pick_file(self):
-        file_path = filedialog.askopenfilename(
-            title="Select audio file",
-            filetypes=(
-                ("Audio files", "*.wav"),
-                ("All files", "*.*"),
-            ),
-        )
-
-        if not file_path:
-            return
-
+    
+    # ERROR CHECKER ===
+    def have_error(self):
         engine = self.engine_var.get()
+        error_found = False
         if engine == "vosk":
             if Model is None or KaldiRecognizer is None:
                 messagebox.showerror(
@@ -158,7 +153,7 @@ class TranscribeWindow:
                     "Vosk is not installed. Run: pip install vosk",
                     parent=self.window,
                 )
-                return
+                error_found = True
 
             if not self.model_path:
                 messagebox.showwarning(
@@ -166,7 +161,7 @@ class TranscribeWindow:
                     "Select a Vosk model folder first.",
                     parent=self.window,
                 )
-                return
+                error_found = True
         else:
             if sr is None:
                 messagebox.showerror(
@@ -174,12 +169,35 @@ class TranscribeWindow:
                     "SpeechRecognition is not installed. Run: pip install SpeechRecognition",
                     parent=self.window,
                 )
-                return
+                error_found = True
+        
+        return error_found
+        
+    
+    # FILE TRANSCRIPTION ===
+    def start_file_transcribe(self):
+        # Pick the file and return early if none selected
+        file_path = filedialog.askopenfilename(
+            title="Select audio file",
+            filetypes=(
+                ("Audio files", "*.wav"),
+                ("All files", "*.*"),
+            ),
+        )
+        if not file_path:
+            return
+        
+        # Return early if there is an error
+        if self.have_error():
+            return
 
+        engine = self.engine_var.get()
+        
+        # Clear output
         self.text_output.delete("1.0", tk.END)
         self.status_var.set("Transcribing...")
         self.set_busy(True)
-        self.state_callback("thinking")
+        self.state_callback("work")
 
         thread = threading.Thread(target=self.transcribe_file, args=(file_path, engine))
         thread.daemon = True
@@ -206,8 +224,6 @@ class TranscribeWindow:
                     result = json.loads(recognizer.FinalResult())
                     text = result.get("text", "").strip() or "ERROR: No speech detected."
             else:
-                if sr is None:
-                    raise ValueError("SpeechRecognition is not installed.")
                 recognizer = sr.Recognizer()
                 with sr.AudioFile(file_path) as source:
                     audio = recognizer.record(source)
@@ -230,19 +246,10 @@ class TranscribeWindow:
         self.set_busy(False)
         self.state_callback("idle")
 
-    def close_window(self):
-        if self.listening:
-            self.stop_listening()
-        self.state_callback("idle")
-        self.window.destroy()
+    
 
-    def pick_model(self):
-        if Model is None:
-            messagebox.showerror(
-                "Missing Dependency",
-                "Vosk is not installed. Run: pip install vosk",
-                parent=self.window,
-            )
+    def pick_vosk_model(self):
+        if self.have_error():
             return
 
         model_path = filedialog.askdirectory(title="Select Vosk model folder")
@@ -298,7 +305,7 @@ class TranscribeWindow:
         self.status_var.set("Listening...")
         self.set_busy(True, allow_stop=True)
         self.button_listen.config(text="Stop Mic")
-        self.state_callback("thinking")
+        self.state_callback("work")
 
         self.listening = True
         self.active_engine = "vosk"
@@ -357,7 +364,7 @@ class TranscribeWindow:
         self.status_var.set("Listening (Google)...")
         self.set_busy(True, allow_stop=True)
         self.button_listen.config(text="Stop Mic")
-        self.state_callback("thinking")
+        self.state_callback("work")
 
         self.listening = True
         self.active_engine = "google"
@@ -433,31 +440,54 @@ class TranscribeWindow:
         self.text_output.see(tk.END)
         self.status_var.set("Listening...")
 
+    # Handle UI button disabling when busy with a task
     def set_busy(self, busy, allow_stop=False):
-        state = "disabled" if busy else "normal"
-        self.button_pick.config(state=state)
+        if busy:
+            target_state = "disabled" 
+        else:
+            target_state = "normal"
+        
+        # Engine radio buttons
+        for button in self.engine_buttons:
+            button.config(state=target_state)
+            
+        # File Transcription button
+        self.button_filetranscribe.config(state=target_state)
+        
+        # Live Transcription button
         if busy and allow_stop:
             self.button_listen.config(state="normal")
         else:
-            self.button_listen.config(state=state)
-        for button in self.engine_buttons:
-            button.config(state=state)
+            self.button_listen.config(state=target_state)
+        
+        # Vosk Model Picker button
         if busy:
-            self.button_model.config(state="disabled")
+            self.button_pick_vosk_model.config(state="disabled")
         else:
             self.update_engine_controls()
 
+    # Disables the Pick Model button intended for Vosk if the engine is google    
     def update_engine_controls(self):
         if self.engine_var.get() == "google":
-            self.button_model.config(state="disabled")
+            self.button_pick_vosk_model.config(state="disabled")
         else:
-            self.button_model.config(state="normal")
+            self.button_pick_vosk_model.config(state="normal")
 
+    # UI status changes wje
     def on_engine_change(self):
         if self.listening:
             return
+        
         self.update_engine_controls()
         if self.engine_var.get() == "google":
             self.status_var.set("Google speech selected (online).")
         else:
             self.status_var.set("Ready.")
+    
+    def close_window(self):
+        if self.listening:
+            self.stop_listening()
+        self.state_callback("idle")
+        self.window.destroy()
+
+

@@ -45,6 +45,9 @@ class pet():
         
         self.sprite_sit_path = info_dict["sprite_sit_path"]
         self.sprite_sit_interval = info_dict["sprite_sit_interval"]
+        
+        self.sprite_think_path = info_dict["sprite_think_path"]
+        self.sprite_think_interval = info_dict["sprite_think_interval"]
 
         self.chroma_key = info_dict["chroma_key"]
         self.prompt = info_dict["prompt"]
@@ -207,6 +210,8 @@ class pet():
         print(f"Petting {self.name}!")
         self.change_state("pet")
     
+    
+    # PET CHAT ===
     def open_chat(self):
         # Instantly creates a window parented to this pet window + passes the pet name and what to do when send is clicked 
         ChatWindow(self.window, self.name, self.start_chat_thread)
@@ -237,17 +242,23 @@ class pet():
         if hasattr(self, 'thinking_bubble') and self.thinking_bubble:
              self.thinking_bubble.close()
         
-        self.change_state("idle")
+        self.change_state(self.previous_state)
         SpeechBubble(self.window, response, self.x, self.y, duration=7000)
-
+    
+    
+    # POMODORO ===
     def open_pomodoro(self):
         print(f"{self.name} Opening pomodoro window!")
         self.pomodoro_window = PomodoroTimer(self.window, self.work_callback, self.change_state)
 
+
+    # TRANSCRIBE ===
     def open_transcribe(self):
         print(f"{self.name} Opening transcribe window!")
         self.transcribe_window = TranscribeWindow(self.window, self.change_state)
     
+
+    # PUSH PET ===    
     def push_pet(self, direction):
         if direction == "left":
             self.x -= 100
@@ -255,7 +266,7 @@ class pet():
             self.x += 100
 
 
-    # PET STATE + HUNGER  ===
+    # CHANGE STATE  ===
     def change_state(self, target:str):
         # Return early if already at target state
         if self.state == target:
@@ -272,6 +283,8 @@ class pet():
         self.state = target
         print(f"PREVIOUSLY {self.previous_state} ==> {self.state}")
     
+    
+    # UPDATE HUNGER ===
     def update_hunger(self):
         # Update hunger
         if time.time() >= self.hunger_timestamp + self.hunger_decay_interval:
@@ -282,6 +295,8 @@ class pet():
         if self.hunger <= 0:
             self.change_state("hungry")
     
+    
+    # UPDATE SUBSTATE ===
     def update_substates(self):
         # IDLE STATE --> Frolick around randomly
         if self.state == "idle":
@@ -335,12 +350,11 @@ class pet():
         
         elif self.state == "thinking":
             self.change_movement("idle")
-            self.change_animation("idle")
+            self.change_animation("think")
         
         elif self.state == "sitting":
             self.change_movement("idle")
             self.change_animation("sit")
-    
 
     
     # MOVEMENT STATE ===
@@ -430,6 +444,10 @@ class pet():
         elif self.state_ani == "sit":
             self.sprite_current = self.sprite_sit_path
             self.sprite_interval = self.sprite_sit_interval
+        
+        elif self.state_ani == "think":
+            self.sprite_current = self.sprite_think_path
+            self.sprite_interval = self.sprite_think_interval
         
 
         print(f"Current animation set = {self.sprite_current}")

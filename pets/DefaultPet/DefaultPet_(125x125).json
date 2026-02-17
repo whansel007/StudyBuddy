@@ -99,6 +99,13 @@
         "pets\\DefaultPet\\sit\\sit_125x125_(17).png",
         "pets\\DefaultPet\\sit\\sit_125x125_(18).png"
     ],
+    "sprite_think_interval": 0.1,
+    "sprite_think_path": [
+        "pets\\DefaultPet\\think\\think_125x125_(0).png",
+        "pets\\DefaultPet\\think\\think_125x125_(1).png",
+        "pets\\DefaultPet\\think\\think_125x125_(2).png",
+        "pets\\DefaultPet\\think\\think_125x125_(3).png"
+    ],
     "chroma_key": "#808080",
     "wander_interval": 3,
     "wander_treshold": [

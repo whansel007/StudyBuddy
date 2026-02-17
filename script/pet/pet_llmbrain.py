@@ -18,9 +18,16 @@ def get_ollama_response(system_prompt, user_message, model="phi3"):
     }
     
     try:
+        # Send a POST request to it
         response = requests.post(url, json=payload, timeout=60)
+        
+        #The status will raise an error if response status is other than 200 OK
         response.raise_for_status()
+        
+        # Recieve the response
         data = response.json()
+        
+        #Get the message (if not, return {}) and from that get the content (if not, return "*is speechless")
         return data.get("message", {}).get("content", "*is speechless*")
     
     except requests.exceptions.ConnectionError:

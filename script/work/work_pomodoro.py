@@ -47,28 +47,63 @@ class PomodoroTimer:
         self.window.attributes('-topmost', True)
         self.window.protocol("WM_DELETE_WINDOW", self.close_pomodoro)
 
-        self.label_title = tk.Label(self.window, text="Timer", fg=self.GREEN, bg=self.YELLOW, font=(self.FONT_NAME, 50))
+        self.label_title = tk.Label(
+            self.window, 
+            text="Timer", 
+            fg=self.GREEN, 
+            bg=self.YELLOW, 
+            font=(self.FONT_NAME, 50))
         self.label_title.grid(column=0, row=0, columnspan=3, pady=5, sticky="ew")
 
-        self.label_timer = tk.Label(self.window, text="00:00", fg="white", bg=self.GREEN, font=(self.FONT_NAME, 35, "bold"))
+        self.label_timer = tk.Label(
+            self.window, 
+            text="00:00", 
+            fg="white", 
+            bg=self.GREEN, 
+            font=(self.FONT_NAME, 35, "bold"))
         self.label_timer.grid(column=0, row=1, columnspan=3, pady=20, ipady=10, ipadx=10, sticky="ew")
 
-        self.button_settings = tk.Button(self.window, text="Settings", highlightthickness=0, command=self.open_settings_window)
+        self.button_settings = tk.Button(
+            self.window, 
+            text="Settings", 
+            highlightthickness=0, 
+            command=self.open_settings_window)
         self.button_settings.grid(column=2, row=3, pady=10)
 
-        self.button_start = tk.Button(self.window, text="Start", highlightthickness=0, command=self.handle_start_button)
+        self.button_start = tk.Button(
+            self.window, 
+            text="Start", 
+            highlightthickness=0, 
+            command=self.handle_start_button)
         self.button_start.grid(column=1, row=3)
 
-        self.buttonn_reset = tk.Button(self.window, text="Reset", highlightthickness=0, command=self.reset_timer)
+        self.buttonn_reset = tk.Button(
+            self.window, 
+            text="Reset", 
+            highlightthickness=0, 
+            command=self.reset_timer)
         self.buttonn_reset.grid(column=0, row=3)
 
-        self.label_extra = tk.Label(self.window, fg=self.BLUE, bg=self.YELLOW, font=(self.FONT_NAME, 12, "bold"))
+        self.label_extra = tk.Label(
+            self.window, 
+            fg=self.BLUE, 
+            bg=self.YELLOW, 
+            font=(self.FONT_NAME, 12, "bold"))
         self.label_extra.grid(column=0, row=4, columnspan=2)
         
-        self.label_coin = tk.Label(self.window, text="Coin gained : 0",fg=self.GREEN, bg=self.YELLOW, font=(self.FONT_NAME, 12, "bold"))
+        self.label_coin = tk.Label(
+            self.window, 
+            text="Coin gained : 0",
+            fg=self.GREEN, 
+            bg=self.YELLOW,
+            font=(self.FONT_NAME, 12, "bold"))
         self.label_coin.grid(column=0, row=5, columnspan=2)
 
-        self.button_cashout = tk.Button(self.window, text="Cash out", highlightthickness=0, command=self.cash_out)
+        self.button_cashout = tk.Button(
+            self.window, 
+            text="Cash out", 
+            highlightthickness=0, 
+            command=self.cash_out)
         self.button_cashout.grid(column=2, row=5)
 
         self.update_ui()  # Initial UI initialization 
@@ -208,8 +243,6 @@ class PomodoroTimer:
             self.coins = 0
             self.update_ui()
             messagebox.showinfo("Cash Out", "Coins transferred to your inventory!", parent=self.window)
-        else:
-            messagebox.showinfo("Cash Out", "No coins to cash out!", parent=self.window)
         
     def close_pomodoro(self):
         self.cash_out()
