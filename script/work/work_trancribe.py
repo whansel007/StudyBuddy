@@ -88,7 +88,7 @@ class TranscribeWindow:
                 text="Vosk (offline)",
                 value="vosk",
                 variable=self.engine_var,
-                command=self.on_engine_change,
+                command=self.update_engine_controls,
                 bg="#f7f5dd",
                 font=("Comic Sans MS", 10),
             ),
@@ -97,7 +97,7 @@ class TranscribeWindow:
                 text="Google (online)",
                 value="google",
                 variable=self.engine_var,
-                command=self.on_engine_change,
+                command=self.update_engine_controls,
                 bg="#f7f5dd",
                 font=("Comic Sans MS", 10),
             ),
@@ -154,14 +154,6 @@ class TranscribeWindow:
                     parent=self.window,
                 )
                 error_found = True
-
-            if not self.model_path:
-                messagebox.showwarning(
-                    "Missing Model",
-                    "Select a Vosk model folder first.",
-                    parent=self.window,
-                )
-                error_found = True
         else:
             if sr is None:
                 messagebox.showerror(
@@ -170,6 +162,23 @@ class TranscribeWindow:
                     parent=self.window,
                 )
                 error_found = True
+        
+        if sr is None:
+            messagebox.showerror(
+                "Missing Dependency",
+                "SpeechRecognition is not installed. Run: pip install SpeechRecognition",
+                parent=self.window,
+            )
+            error_found = True
+        try:
+            self.microphone = sr.Microphone()
+        except Exception as exc:
+            messagebox.showerror(
+                "Mic Error",
+                f"Unable to access microphone: {exc}",
+                parent=self.window,
+            )
+            error_found = True
         
         return error_found
         
@@ -247,68 +256,78 @@ class TranscribeWindow:
         self.state_callback("idle")
 
     
-
-    def pick_vosk_model(self):
-        if self.have_error():
-            return
-
-        model_path = filedialog.askdirectory(title="Select Vosk model folder")
-        if model_path:
-            self.model_path = model_path
-            self.model = None
-            self.status_var.set("Model selected.")
-
-    def load_model(self):
-        if not self.model_path:
-            raise ValueError("No model folder selected.")
-        if self.model is None:
-            self.model = Model(self.model_path)
-        return self.model
-
+    # LIVE TRANSCRIPTION ===
     def toggle_listen(self):
         if self.listening:
             self.stop_listening()
         else:
             self.start_listening()
-
+            
     def start_listening(self):
         engine = self.engine_var.get()
-        if engine == "google":
-            self.start_listening_google()
-        else:
-            self.start_listening_vosk()
-
-    def start_listening_vosk(self):
-        if sd is None:
-            messagebox.showerror(
-                "Missing Dependency",
-                "sounddevice is not installed. Run: pip install sounddevice",
-                parent=self.window,
-            )
-            return
-        if Model is None or KaldiRecognizer is None:
-            messagebox.showerror(
-                "Missing Dependency",
-                "Vosk is not installed. Run: pip install vosk",
-                parent=self.window,
-            )
-            return
-        if not self.model_path:
-            messagebox.showwarning(
-                "Missing Model",
-                "Select a Vosk model folder first.",
-                parent=self.window,
-            )
-            return
-
         self.text_output.delete("1.0", tk.END)
         self.status_var.set("Listening...")
         self.set_busy(True, allow_stop=True)
         self.button_listen.config(text="Stop Mic")
         self.state_callback("work")
+        
+        if engine == "google":
+            self.start_listening_google()
+        else:
+            self.start_listening_vosk()
+
+    def append_text(self, text):
+        self.text_output.insert(tk.END, text + "\n")
+        self.text_output.see(tk.END)
+        self.status_var.set("Listening...")
+    
+    def stop_listening(self):
+        self.listening = False
+        if self.active_engine == "google":
+            if self.stop_listen_callback:
+                try:
+                    self.stop_listen_callback(wait_for_stop=False)
+                except Exception:
+                    pass
+                self.stop_listen_callback = None
+            self.microphone = None
+        else:
+            if self.stream:
+                try:
+                    self.stream.stop()
+                    self.stream.close()
+                except Exception:
+                    pass
+                self.stream = None
+        self.status_var.set("Stopped.")
+        self.set_busy(False)
+        self.button_listen.config(text="Start Mic")
+        self.state_callback("idle")
+        self.active_engine = None
+        
+    # Vosk Model ===
+    def pick_vosk_model(self):
+        model_path = filedialog.askdirectory(title="Select Vosk model folder")
+        if model_path:
+            self.model_path = model_path
+            self.model = None
+            self.status_var.set("Model selected.")
+            
+    # Ensures that a model is selected before transcribing
+    def load_model(self):
+        if not self.model_path:
+            raise ValueError("No model folder selected.")
+        if self.model is None:
+            self.model = Model(self.model_path)
+        return self.model           
+    
+    def start_listening_vosk(self):
+        if self.have_error():
+            return
 
         self.listening = True
         self.active_engine = "vosk"
+        
         self.audio_queue = queue.Queue()
         model = self.load_model()
 
@@ -331,43 +350,40 @@ class TranscribeWindow:
             )
             self.stream.start()
         except Exception as exc:
-            self.listening = False
-            self.set_busy(False)
-            self.button_listen.config(text="Start Mic")
-            self.state_callback("idle")
+            self.stop_listening()
             messagebox.showerror("Mic Error", str(exc), parent=self.window)
             return
 
-        thread = threading.Thread(target=self.listen_loop)
+        thread = threading.Thread(target=self.vosk_listen_loop)
         thread.daemon = True
         thread.start()
 
+    def vosk_listen_loop(self):
+        while self.listening:
+            try:
+                data = self.audio_queue.get(timeout=0.2)
+            except queue.Empty:
+                continue
+
+            if self.recognizer.AcceptWaveform(data):
+                result = json.loads(self.recognizer.Result())
+                text = result.get("text", "").strip()
+                if text:
+                    self.window.after(0, lambda t=text: self.append_text(t))
+            else:
+                partial = json.loads(self.recognizer.PartialResult()).get("partial", "")
+                if partial:
+                    self.window.after(0, lambda p=partial: self.status_var.set(p))
+
+    
+    # Google Model ===
     def start_listening_google(self):
-        if sr is None:
-            messagebox.showerror(
-                "Missing Dependency",
-                "SpeechRecognition is not installed. Run: pip install SpeechRecognition",
-                parent=self.window,
-            )
+        if self.have_error():
             return
-        try:
-            self.microphone = sr.Microphone()
-        except Exception as exc:
-            messagebox.showerror(
-                "Mic Error",
-                f"Unable to access microphone: {exc}",
-                parent=self.window,
-            )
-            return
-
-        self.text_output.delete("1.0", tk.END)
-        self.status_var.set("Listening (Google)...")
-        self.set_busy(True, allow_stop=True)
-        self.button_listen.config(text="Stop Mic")
-        self.state_callback("work")
-
+        
         self.listening = True
         self.active_engine = "google"
+        
         self.recognizer = sr.Recognizer()
 
         def callback(recognizer, audio):
@@ -394,53 +410,8 @@ class TranscribeWindow:
             self.state_callback("idle")
             messagebox.showerror("Mic Error", str(exc), parent=self.window)
 
-    def stop_listening(self):
-        self.listening = False
-        if self.active_engine == "google":
-            if self.stop_listen_callback:
-                try:
-                    self.stop_listen_callback(wait_for_stop=False)
-                except Exception:
-                    pass
-                self.stop_listen_callback = None
-            self.microphone = None
-        else:
-            if self.stream:
-                try:
-                    self.stream.stop()
-                    self.stream.close()
-                except Exception:
-                    pass
-                self.stream = None
-        self.status_var.set("Stopped.")
-        self.set_busy(False)
-        self.button_listen.config(text="Start Mic")
-        self.state_callback("idle")
-        self.active_engine = None
 
-    def listen_loop(self):
-        while self.listening:
-            try:
-                data = self.audio_queue.get(timeout=0.2)
-            except queue.Empty:
-                continue
-
-            if self.recognizer.AcceptWaveform(data):
-                result = json.loads(self.recognizer.Result())
-                text = result.get("text", "").strip()
-                if text:
-                    self.window.after(0, lambda t=text: self.append_text(t))
-            else:
-                partial = json.loads(self.recognizer.PartialResult()).get("partial", "")
-                if partial:
-                    self.window.after(0, lambda p=partial: self.status_var.set(p))
-
-    def append_text(self, text):
-        self.text_output.insert(tk.END, text + "\n")
-        self.text_output.see(tk.END)
-        self.status_var.set("Listening...")
-
-    # Handle UI button disabling when busy with a task
+    #EXTRA UI HANDLING
     def set_busy(self, busy, allow_stop=False):
         if busy:
             target_state = "disabled" 
@@ -470,19 +441,10 @@ class TranscribeWindow:
     def update_engine_controls(self):
         if self.engine_var.get() == "google":
             self.button_pick_vosk_model.config(state="disabled")
-        else:
-            self.button_pick_vosk_model.config(state="normal")
-
-    # UI status changes wje
-    def on_engine_change(self):
-        if self.listening:
-            return
-        
-        self.update_engine_controls()
-        if self.engine_var.get() == "google":
             self.status_var.set("Google speech selected (online).")
         else:
-            self.status_var.set("Ready.")
+            self.button_pick_vosk_model.config(state="normal")
+            self.status_var.set("Vosk speech selected (offline).")
     
     def close_window(self):
         if self.listening:

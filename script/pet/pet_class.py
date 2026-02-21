@@ -81,9 +81,6 @@ class pet():
         self.move_x = 0
         self.move_y = 0
         self.speed_modifier = 1
-        
-        self.keyboard_x = 0
-        self.keyboard_y = 0
 
         self.img = tk.PhotoImage(file=self.sprite_idle_path[0])
         self.sprite_flip = False        
@@ -388,8 +385,7 @@ class pet():
         elif self.state_mov == "down":
             self.y += self.move_y
         elif self.state_mov == "controlled":
-            self.x = self.move_x * self.keyboard_x
-            self.y = self.move_y * self.keyboard_y
+            pass
         else:
             # Reset move values to 0 when idle
             self.move_x = 0
