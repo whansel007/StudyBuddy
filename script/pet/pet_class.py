@@ -7,6 +7,7 @@ from PIL import Image, ImageTk
 import threading
 from script.work.work_pomodoro import PomodoroTimer
 from script.work.work_trancribe import TranscribeWindow
+from script.work.work_notes import NotesWindow
 from script.pet.pet_llmbrain import get_ollama_response
 from script.helper.chat_ui import ChatWindow, SpeechBubble
 
@@ -18,8 +19,8 @@ class pet():
         self.size_x = info_dict["size_x"]
         self.size_y = info_dict["size_y"]
 
-        self.x = info_dict["pos_x"]
-        self.y = info_dict["pos_y"]
+        self.x = info_dict["spawn_x"]
+        self.y = info_dict["spawn_y"]
         self.screenwidth, self.screenheight = info_dict["screensize"]
 
         self.speed_x = info_dict["speed_x"]
@@ -81,6 +82,8 @@ class pet():
         self.move_x = 0
         self.move_y = 0
         self.speed_modifier = 1
+        
+        self.gravity = True
 
         self.img = tk.PhotoImage(file=self.sprite_idle_path[0])
         self.sprite_flip = False        
@@ -97,6 +100,9 @@ class pet():
         
         self.hunger_timestamp = time.time()
 
+        # Drag state
+        self.is_dragging = False
+
         # Window 
         self.window = tk.Toplevel(master)
         self.window.overrideredirect(True) # Frameless
@@ -110,11 +116,15 @@ class pet():
         
         # Image
         self.label = tk.Label(self.window, bd=0, bg=self.chroma_key) # Border line thickness of 0 and the background chroma key color (since need to have background color)
-        self.label.bind("<Button-3>", self.show_petmenu) 
         
+        # THE DRAG LOGIC ===
+        self.label.bind("<Button-1>", self.start_drag)
+        self.label.bind("<B1-Motion>", self.do_drag)
+        self.label.bind("<ButtonRelease-1>", self.stop_drag)        
 
         # THE PET MENU ===
         # Create the pet's right-click menu
+        self.label.bind("<Button-3>", self.show_petmenu) 
         self.pet_menu = tk.Menu(self.window, tearoff=0)
         
         # Pet Stat menu
@@ -135,13 +145,15 @@ class pet():
         self.work_menu = tk.Menu(self.pet_menu, tearoff=0)
         self.work_menu.add_command(label="Pomodoro", command=self.open_pomodoro)
         self.work_menu.add_command(label="Transcribe Audio", command=self.open_transcribe)
+        self.work_menu.add_command(label="Notes", command=self.open_notes)
         self.pet_menu.add_cascade(label="Work", menu=self.work_menu)
 
         # Control menu
         self.control_menu = tk.Menu(self.pet_menu, tearoff=0)
         self.control_menu.add_command(label="Sit", command=self.toggle_sit)
-        self.control_menu.add_command(label="Push Left", command=lambda: self.push_pet("left"))
-        self.control_menu.add_command(label="Push Right", command=lambda: self.push_pet("right"))
+        self.control_menu.add_command(label="Turn off gravity", command= self.toggle_gravity)
+        # self.control_menu.add_command(label="Push Left", command=lambda: self.push_pet("left"))
+        # self.control_menu.add_command(label="Push Right", command=lambda: self.push_pet("right"))
         self.pet_menu.add_cascade(label="Control", menu=self.control_menu)
         self.pet_menu.add_separator()
         
@@ -186,7 +198,11 @@ class pet():
         # Update Sit/Unsit label in the Control menu
         sit_label = "Unsit" if self.state == "sitting" else "Sit"
         self.control_menu.entryconfigure(0, label=sit_label)
-
+        
+        # Update On/Off Gravity label in the Control menu
+        gravity_label = "Turn off gravity" if self.gravity else "Turn on gravity"
+        self.control_menu.entryconfigure(1, label=gravity_label)
+        
         self.pet_menu.post(event.x_root, event.y_root)
 
     def toggle_sit(self):
@@ -194,6 +210,10 @@ class pet():
              self.change_state("idle")
         else:
              self.change_state("sitting")
+    
+    def toggle_gravity(self):
+        self.gravity = not self.gravity
+        print(self.gravity)
 
     def feed_pet(self):
         if self.feed_callback():
@@ -253,6 +273,11 @@ class pet():
     def open_transcribe(self):
         print(f"{self.name} Opening transcribe window!")
         self.transcribe_window = TranscribeWindow(self.window, self.change_state)
+        
+    # NOTES ===
+    def open_notes(self):
+        print(f"{self.name} Opening notes window!")
+        self.transcribe_window = NotesWindow(self.window)
     
 
     # PUSH PET ===    
@@ -261,6 +286,35 @@ class pet():
             self.x -= 100
         else:
             self.x += 100
+
+
+    # DRAG PET ===
+    def start_drag(self, event):
+        print("start")
+        self.drag_start_x = event.x_root
+        self.drag_start_y = event.y_root
+        
+        self.start_x = self.x
+        self.start_y = self.y
+        
+        self.is_dragging = True
+        self.change_state("dragged")
+
+    def do_drag(self, event):
+        if self.is_dragging:
+            # Update relative x and y position based on mouse movement
+            dx = event.x_root - self.drag_start_x
+            dy = event.y_root - self.drag_start_y
+            
+            self.x = self.start_x + dx
+            self.y = self.start_y + dy
+
+
+    def stop_drag(self, event):
+        self.is_dragging = False
+        # If we were in idle state, we might want to reset the wander timer 
+        # so it doesn't immediately jump to a new position if it was about to.
+        self.change_state(self.previous_state)
 
 
     # CHANGE STATE  ===
@@ -302,7 +356,7 @@ class pet():
             # Randomly switchs between moving right, moving left, and idle every interval
             if time.time() >= self.action_idle_timestamp + self.wander_interval:        
                 self.action_idle_roll = random.randint(-10, 10)
-                print(f"ROLLED {self.action_idle_roll}")
+                # print(f"ROLLED {self.action_idle_roll}")
 
                 #                 ========idle========
                 # -10 - - - - - T0 - - - -  0 - - - - T1 - - - - -  10
@@ -341,17 +395,27 @@ class pet():
             self.change_animation("pet")
             #print(f"{self.name} is being pet!")
         
+        # WORK STATE --> Do not move and work
         elif self.state == "work":
             self.change_movement("idle")
             self.change_animation("work")
         
+        # THINKING STATE --> Do not move and think
         elif self.state == "thinking":
             self.change_movement("idle")
             self.change_animation("think")
         
+        # SIT STATE --> Do not move and sit
         elif self.state == "sitting":
             self.change_movement("idle")
             self.change_animation("sit")
+        
+        # DRAGGED STATE --> Do not move and get dragged
+        elif self.state == "dragged":
+            self.change_movement("dragged")
+            self.change_animation("idle")
+        
+        
 
     
     # MOVEMENT STATE ===
@@ -446,7 +510,7 @@ class pet():
             self.sprite_interval = self.sprite_think_interval
         
 
-        print(f"Current animation set = {self.sprite_current}")
+        # print(f"Current animation set = {self.sprite_current}")
     
     def update_animation(self):
         # Increase the sprite index every interval and reset the timer

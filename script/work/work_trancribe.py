@@ -59,7 +59,8 @@ class TranscribeWindow:
             self.window, 
             textvariable=self.status_var, 
             bg="#f7f5dd", 
-            font=("Comic Sans MS", 10))
+            font=("Comic Sans MS", 10),
+            wraplength=400)
         self.label_status.pack(pady=(0, 10))
 
         self.button_pick_vosk_model = tk.Button(
@@ -154,6 +155,13 @@ class TranscribeWindow:
                     parent=self.window,
                 )
                 error_found = True
+            if not self.model_path:
+                messagebox.showerror(
+                    "No Vosk Model Selected",
+                    "PLease Pick Vosk Model folder",
+                    parent=self.window,
+                )
+                error_found = True
         else:
             if sr is None:
                 messagebox.showerror(
@@ -180,6 +188,7 @@ class TranscribeWindow:
             )
             error_found = True
         
+        self.stop_listening()
         return error_found
         
     
@@ -311,7 +320,7 @@ class TranscribeWindow:
         if model_path:
             self.model_path = model_path
             self.model = None
-            self.status_var.set("Model selected.")
+            self.status_var.set("Vosk speech ready!")
             
     # Ensures that a model is selected before transcribing
     def load_model(self):
@@ -441,10 +450,10 @@ class TranscribeWindow:
     def update_engine_controls(self):
         if self.engine_var.get() == "google":
             self.button_pick_vosk_model.config(state="disabled")
-            self.status_var.set("Google speech selected (online).")
+            self.status_var.set("Google speech ready!")
         else:
             self.button_pick_vosk_model.config(state="normal")
-            self.status_var.set("Vosk speech selected (offline).")
+            self.status_var.set("Please pick the Vosk Model Folder!")
     
     def close_window(self):
         if self.listening:

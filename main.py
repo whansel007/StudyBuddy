@@ -24,8 +24,8 @@ USER_INV = { "coin": 10,
 NAME = "DefaultPet"
 PROMPT = f"You are a cute cat desktop pet talking to the user."
 
-POS_X = -150
-POS_Y = -150
+SPAWN_X = -150
+SPAWN_Y = -150
 
 SIZE_X = 125
 SIZE_Y = 125
@@ -52,9 +52,9 @@ HUNGER_DECAY_INTERVAL = 180
 HUNGER_DECAY_RATE = 1
 HUNGER_RECOVER_RATE = 25
 
-def get_with_default(entry:tk.Entry, default_value, value_type:type = int):
+def get_convert(entry:tk.Entry, default_value, value_type:type = int):
     """
-    In case u screw up and delete the default value we already put in, thus launching the pet with an empty entry
+    Easily convert from strings to int or other values from entries
     """
     value = entry.get()
 
@@ -126,11 +126,12 @@ frame_prompt, (entry_prompt) = create_general_entry(
 frame_prompt.pack(pady=PADDING)
 
 # Pos Entry
-frame_pos, (entry_pos_x, entry_pos_y) = create_general_entry(
+frame_pos, (entry_spawn_x, entry_spawn_y) = create_general_entry(
     root, 
     "Pet position (x,y):", 
     num_entries=2, 
-    default_value= (POS_X, POS_Y), 
+    
+    default_value= (SPAWN_X, SPAWN_Y), 
     font_bold=FONT_BOLD, 
     font_default=FONT_DEFALT)
 frame_pos.pack(pady=PADDING)
@@ -283,14 +284,14 @@ def open_anisettings():
 
         sprite_setting["settings_open"] = False
         
-        sprite_setting["idle"][1] = get_with_default(entry_ani_idle_interval, SPRITE_INTERVAL, float)
-        sprite_setting["walk"][1] = get_with_default(entry_ani_walk_interval, SPRITE_INTERVAL, float)
-        sprite_setting["eat"][1] = get_with_default(entry_ani_eat_interval, SPRITE_INTERVAL, float)
-        sprite_setting["hungry"][1] = get_with_default(entry_ani_hungry_interval, SPRITE_INTERVAL, float)
-        sprite_setting["pet"][1] = get_with_default(entry_ani_pet_interval, SPRITE_INTERVAL, float)
-        sprite_setting["work"][1] = get_with_default(entry_ani_work_interval, SPRITE_INTERVAL, float)
-        sprite_setting["sit"][1] = get_with_default(entry_ani_sit_interval, SPRITE_INTERVAL, float)
-        sprite_setting["think"][1] = get_with_default(entry_ani_think_interval, SPRITE_INTERVAL, float)
+        sprite_setting["idle"][1] = get_convert(entry_ani_idle_interval, SPRITE_INTERVAL, float)
+        sprite_setting["walk"][1] = get_convert(entry_ani_walk_interval, SPRITE_INTERVAL, float)
+        sprite_setting["eat"][1] = get_convert(entry_ani_eat_interval, SPRITE_INTERVAL, float)
+        sprite_setting["hungry"][1] = get_convert(entry_ani_hungry_interval, SPRITE_INTERVAL, float)
+        sprite_setting["pet"][1] = get_convert(entry_ani_pet_interval, SPRITE_INTERVAL, float)
+        sprite_setting["work"][1] = get_convert(entry_ani_work_interval, SPRITE_INTERVAL, float)
+        sprite_setting["sit"][1] = get_convert(entry_ani_sit_interval, SPRITE_INTERVAL, float)
+        sprite_setting["think"][1] = get_convert(entry_ani_think_interval, SPRITE_INTERVAL, float)
 
         window_anisettings.destroy()
     
@@ -416,16 +417,16 @@ def open_additionalsettings():
 
         additional_settings["settings_open"] = False
 
-        additional_settings["wander_interval"] = get_with_default(entry_wander_interval, WANDER_INTERVAL)
-        additional_settings["wander_treshold"] = (get_with_default(entry_wander_tresholdleft, WANDER_TRESHOLD[0]),
-                                                  get_with_default(entry_wander_tresholdright, WANDER_TRESHOLD[1]) )
+        additional_settings["wander_interval"] = get_convert(entry_wander_interval, WANDER_INTERVAL)
+        additional_settings["wander_treshold"] = (get_convert(entry_wander_tresholdleft, WANDER_TRESHOLD[0]),
+                                                  get_convert(entry_wander_tresholdright, WANDER_TRESHOLD[1]) )
         
-        additional_settings["eatloop_treshold"] = get_with_default(entry_eatloop_treshold, EATLOOP_TRESHOLD)
-        additional_settings["petloop_treshold"] = get_with_default(entry_petloop_treshold, PETLOOP_TRESHOLD)
+        additional_settings["eatloop_treshold"] = get_convert(entry_eatloop_treshold, EATLOOP_TRESHOLD)
+        additional_settings["petloop_treshold"] = get_convert(entry_petloop_treshold, PETLOOP_TRESHOLD)
         
-        additional_settings["hunger_decay_interval"] = get_with_default(entry_hunger_decay_interval, HUNGER_DECAY_INTERVAL)
-        additional_settings["hunger_decay_rate"] = get_with_default(entry_hunger_decay_rate, HUNGER_DECAY_RATE)
-        additional_settings["hunger_recover_rate"] = get_with_default(entry_hunger_recover_rate, HUNGER_RECOVER_RATE)
+        additional_settings["hunger_decay_interval"] = get_convert(entry_hunger_decay_interval, HUNGER_DECAY_INTERVAL)
+        additional_settings["hunger_decay_rate"] = get_convert(entry_hunger_decay_rate, HUNGER_DECAY_RATE)
+        additional_settings["hunger_recover_rate"] = get_convert(entry_hunger_recover_rate, HUNGER_RECOVER_RATE)
 
         window_additionalsettings.destroy()
 
@@ -486,19 +487,19 @@ def create_pet(pet_container:list):
     """
     Extracts the information from all entries, compiles them into the info dict, saves the info dict as a.json and uses that info dict to launch a pet 
     """
-    user = get_with_default(entry_user, USER_NAME, str)
-    name = get_with_default(entry_name, NAME, str)
+    user = get_convert(entry_user, USER_NAME, str)
+    name = get_convert(entry_name, NAME, str)
 
-    prompt = get_with_default(entry_prompt, PROMPT, str)
+    prompt = get_convert(entry_prompt, PROMPT, str)
 
-    pos_x = get_with_default(entry_pos_x, POS_X)
-    pos_y = get_with_default(entry_pos_y, POS_Y)
+    spawn_x = get_convert(entry_spawn_x, SPAWN_X)
+    spawn_y = get_convert(entry_spawn_y, SPAWN_Y)
 
-    size_x = get_with_default(entry_size_x, SIZE_X) 
-    size_y = get_with_default(entry_size_y, SIZE_Y)
+    size_x = get_convert(entry_size_x, SIZE_X) 
+    size_y = get_convert(entry_size_y, SIZE_Y)
 
-    speed_x = get_with_default(entry_speed_x, SPEED_X)
-    speed_y = get_with_default(entry_speed_y, SPEED_Y)
+    speed_x = get_convert(entry_speed_x, SPEED_X)
+    speed_y = get_convert(entry_speed_y, SPEED_Y)
     
     chromakey = var_chromakey_selection.get()
 
@@ -510,8 +511,8 @@ def create_pet(pet_container:list):
         "prompt" : f"{prompt} Call your user '{user}'. ",
         
         "screensize" : screensize,
-        "pos_x": pos_x,
-        "pos_y": pos_y,
+        "spawn_x": spawn_x,
+        "spawn_y": spawn_y,
         "size_x": size_x,
         "size_y": size_y,
         
