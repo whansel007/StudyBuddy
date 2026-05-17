@@ -31,12 +31,12 @@ class NotesWindow:
             self.frame_title, 
             text="Title: ", 
             bg="#f7f5dd", 
-            font=("Comic Sans MS", 10, "bold"))
+            font=("Comic Sans MS", 12, "bold"))
         
         self.combo_titles = ttk.Combobox(
             self.frame_title,
             width=40,
-            font=("Comic Sans MS", 10),
+            font=("Comic Sans MS", 12),
             values=list(self.notes.keys()))
         self.combo_titles.bind("<<ComboboxSelected>>", lambda event: self.load_note())
         

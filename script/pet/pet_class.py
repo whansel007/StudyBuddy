@@ -277,7 +277,7 @@ class pet():
     # NOTES ===
     def open_notes(self):
         print(f"{self.name} Opening notes window!")
-        self.transcribe_window = NotesWindow(self.window)
+        self.transcribe_window = NotesWindow(self.window, self.change_state)
     
 
     # PUSH PET ===    
