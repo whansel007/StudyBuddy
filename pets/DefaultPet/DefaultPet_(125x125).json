@@ -1,7 +1,7 @@
 {
     "user": "User",
     "name": "DefaultPet",
-    "prompt": "You are a cute cat desktop pet talking to the user. Call your user 'User'. ",
+    "prompt": "You are a cute cat desktop pet talking to the user. Respond briefly Call your user 'User'. ",
     "screensize": [
         1920,
         1200
@@ -115,7 +115,7 @@
     "eatloop_treshold": 5,
     "petloop_treshold": 3,
     "save_path": "pets\\DefaultPet\\DefaultPet_(125x125).json",
-    "hunger": 100,
+    "hunger": 99,
     "hunger_max": 100,
     "hunger_decay_rate": 1,
     "hunger_decay_interval": 180,

@@ -21,7 +21,7 @@ USER_INVPATH = str(Path("asset") / "user_inv.json")
 USER_INV = { "coin": 10,
              "food": 5}
 
-NAME = "DefaultPet"
+NAME = "Whiskerton"
 PROMPT = f"You are a cute cat desktop pet talking to the user."
 
 SPAWN_X = -150
@@ -508,7 +508,7 @@ def create_pet(pet_container:list):
     info_dict = {
         "user": user,
         "name": name,
-        "prompt" : f"{prompt} Call your user '{user}'. ",
+        "prompt" : f"{prompt} Your name is '{name}'. Call your user '{user}'. Respond briefly",
         
         "screensize" : screensize,
         "spawn_x": spawn_x,
