@@ -182,3 +182,7 @@ cython_debug/
 .cursorindexingignore
 test.ipynb
 GEMINI.md
+asset/user_inv.json
+temp.py
+temp.txt
+temp.sh

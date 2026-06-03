@@ -5,5 +5,6 @@ You can customize it's animations to whatever you want and you can add in your o
 Out-of-the-box Features:
 1. Pomodoro Timer
 2. Transcribe (offline mic/WAV via Vosk)
-3. Games
-4. Pet Stats
+3. Feed and Talk to pet
+4. Notes
+
