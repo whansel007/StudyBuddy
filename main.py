@@ -192,7 +192,7 @@ def open_anisettings():
         default_value= IDLE_SPRITE, 
         default_interval= SPRITE_INTERVAL, 
         font_default= FONT_DEFALT, 
-        ont_bold= FONT_BOLD,
+        font_bold= FONT_BOLD,
         default_width= WIDTH)
     frame_ani_idle.grid(column=0, row=0)
 
