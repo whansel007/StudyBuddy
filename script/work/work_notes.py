@@ -27,12 +27,14 @@ class NotesWindow:
         # Title Selection
         self.frame_title = tk.Frame(
             master=self.window)
+        self.frame_title.pack()    
         
         self.label_title = tk.Label(
             self.frame_title, 
             text="Title: ", 
             bg="#f7f5dd", 
             font=("Comic Sans MS", 12, "bold"))
+        self.label_title.pack(side="left")
         
         self.combo_titles = ttk.Combobox(
             self.frame_title,
@@ -40,10 +42,8 @@ class NotesWindow:
             font=("Comic Sans MS", 12),
             values=list(self.notes.keys()))
         self.combo_titles.bind("<<ComboboxSelected>>", lambda event: self.load_note())
-        
-        self.label_title.pack(side="left")
         self.combo_titles.pack(side="right")
-        self.frame_title.pack()    
+        
 
         # Text Content        
         self.text_content = scrolledtext.ScrolledText(
@@ -58,6 +58,7 @@ class NotesWindow:
         # Text Buttons 
         self.frame_textButtons = tk.Frame(
             master=self.window)
+        self.frame_textButtons.pack(pady=(5, 10))
         
         self.button_save = tk.Button(
             self.frame_textButtons, 
@@ -66,6 +67,7 @@ class NotesWindow:
             bg="#87EBB4", 
             font=("Comic Sans MS", 10), 
             padx=20,)
+        self.button_save.pack(side="left", padx=5)
 
         self.button_clear = tk.Button(
             self.frame_textButtons, 
@@ -74,6 +76,7 @@ class NotesWindow:
             bg="#87CEEB", 
             font=("Comic Sans MS", 10), 
             padx=20,)
+        self.button_clear.pack(side="left", padx=5)
         
         self.button_delete = tk.Button(
             self.frame_textButtons, 
@@ -82,15 +85,12 @@ class NotesWindow:
             bg="#EB8787", 
             font=("Comic Sans MS", 10), 
             padx=20,)
-        
-        self.button_save.pack(side="left", padx=5)
-        self.button_clear.pack(side="left", padx=5)
         self.button_delete.pack(side="right", padx=5)
-        self.frame_textButtons.pack(pady=(5, 10))
         
         # File Buttons 
         self.frame_fileButtons = tk.Frame(
             master=self.window)
+        self.frame_fileButtons.pack(pady=(5, 10))
         
         self.button_saveFile = tk.Button(
             self.frame_fileButtons, 
@@ -99,6 +99,7 @@ class NotesWindow:
             bg="#EBBC87", 
             font=("Comic Sans MS", 10), 
             padx=20,)
+        self.button_saveFile.pack(side="left", padx=5)
 
         self.button_loadFile = tk.Button(
             self.frame_fileButtons, 
@@ -107,10 +108,8 @@ class NotesWindow:
             bg="#DA87EB", 
             font=("Comic Sans MS", 10), 
             padx=20,)
-            
-        self.button_saveFile.pack(side="left", padx=5)
         self.button_loadFile.pack(side="left", padx=5)
-        self.frame_fileButtons.pack(pady=(5, 10))
+            
     
     # Functions ===
     def refresh_combo(self):
