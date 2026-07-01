@@ -595,7 +595,8 @@ button_load_pet.pack(padx=PADDING, side="left")
 
 frame_pet.pack(pady=10)
 
-# Pet shop
+# TO DO: MAKE THIS A DIFFERENT CLASS!
+# Pet shop ===
 food_price = 10
 
 def open_shop():
@@ -606,9 +607,16 @@ def open_shop():
 
     window_shop = tk.Toplevel(master=root)
     window_shop.title("Shop")
-    window_shop.geometry("500x500")
+    window_shop.config(
+        padx=20, 
+        pady=20, 
+        bg="#f7f5dd")
 
-    label_shop = tk.Label(master=window_shop, text= "WELCOME TO THE SHOP! :D", font=FONT_BOLD)
+    label_shop = tk.Label(
+        master=window_shop, 
+        text= "WELCOME TO THE SHOP! :D", 
+        font=FONT_BOLD,
+        background="#f7f5dd")
     label_shop.pack()
 
     def update_inv():
@@ -626,21 +634,46 @@ def open_shop():
             user_food += 1
         update_inv()
     
-    frame_stat = ttk.Frame(master=window_shop)
-    label_coin = ttk.Label(master=frame_stat, textvariable=var_user_coin, font=FONT_DEFALT)
+    frame_stat = ttk.Frame(
+        master=window_shop,)
+    frame_stat.pack(pady=PADDING)
     
-    frame_food = ttk.Frame(master=frame_stat)
-    label_food = ttk.Label(master=frame_food, textvariable=var_user_food, font=FONT_DEFALT)
-    button_foodbuy = tk.Button(master=frame_food, text="Buy Food!",
-                               command=buy_food)
-    
+    label_coin = ttk.Label(
+        master=frame_stat, 
+        textvariable=var_user_coin, 
+        font=FONT_DEFALT,
+        background="#FFFB00")
     label_coin.pack(side="top")
     
-    label_food.pack(side="left",padx=PADDING)
-    button_foodbuy.pack(side="right", padx=PADDING)
+    frame_food = ttk.Frame(
+        master=window_shop)
     frame_food.pack(pady=PADDING)
     
-    frame_stat.pack(pady=PADDING)
+    label_food = ttk.Label(
+        master=frame_food, 
+        textvariable=var_user_food, 
+        font=FONT_DEFALT,
+        background="#ffbd91")
+    label_food.pack(side="left",padx=PADDING)
+    
+    button_foodbuy = tk.Button(
+        master=frame_food, 
+        text="Buy Food!",
+        command=buy_food,
+        bg="#fdff91")
+    button_foodbuy.pack(side="right", padx=PADDING)
+    
+    frame_powerup = ttk.Frame(
+        master=window_shop)
+    frame_powerup.pack(pady=PADDING)
+    
+    label_comingSoon = ttk.Label(
+        master=frame_powerup, 
+        text="More coming soon ~",
+        font=FONT_DEFALT,
+        background="#ffd991")
+    label_comingSoon.pack(padx=PADDING)
+    
 
 frame_shop = ttk.Frame(master=root)
 button_shop = tk.Button(master=frame_shop, text="Open Shop!",

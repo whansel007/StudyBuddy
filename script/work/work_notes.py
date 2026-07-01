@@ -6,7 +6,7 @@ import json
 class NotesWindow:
     def __init__(self, master, state_callback):
         # Change state callback function
-        # self.state_callback = state_callback
+        self.state_callback = state_callback
         
         self.notes = {}
         
@@ -109,6 +109,9 @@ class NotesWindow:
             font=("Comic Sans MS", 10), 
             padx=20,)
         self.button_loadFile.pack(side="left", padx=5)
+        
+        # Call pet to be in work mode
+        self.state_callback("work")
             
     
     # Functions ===
@@ -181,10 +184,11 @@ class NotesWindow:
             self.load_note()
         
     def close_window(self):
-        # self.state_callback("idle")
+        # The pet is now relieved from duty :V
+        self.state_callback("idle")
         self.window.destroy()
 
 if __name__ == "__main__":
     root = tk.Tk()
-    app = NotesWindow(root,None)
+    app = NotesWindow(root, lambda x : print(f"Called state callback to {x}") )
     root.mainloop()

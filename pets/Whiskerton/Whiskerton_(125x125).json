@@ -115,7 +115,7 @@
     "eatloop_treshold": 5,
     "petloop_treshold": 3,
     "save_path": "pets\\Whiskerton\\Whiskerton_(125x125).json",
-    "hunger": 88,
+    "hunger": 80,
     "hunger_max": 100,
     "hunger_decay_rate": 1,
     "hunger_decay_interval": 180,

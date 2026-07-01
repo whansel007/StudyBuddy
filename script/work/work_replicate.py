@@ -3,12 +3,13 @@ import time
 import threading
 from pynput import mouse, keyboard
 import tkinter as tk
-from tkinter import ttk, scrolledtext, filedialog
+from tkinter import ttk, scrolledtext
 
 class ReplicateWindow:
     def __init__(self, master, state_callback):
         # Change state callback function
-        # self.state_callback = state_callback
+        self.state_callback = state_callback
+        self.state_callback("work")
         
         # Global list to store the recorded events
         self.recorded_events = []
@@ -46,14 +47,14 @@ class ReplicateWindow:
         
         self.label_loop = tk.Label(
             self.window, 
-            text="Number of loop: ", 
+            text="Number of loop(s): ", 
             bg="#f7f5dd", 
             font=("Comic Sans MS", 12, "bold"))
         self.label_loop.pack(side="left",pady=(0, 10))
         
         self.entry_loop = ttk.Entry(
             self.window, 
-            width=20,
+            width=5,
             font=("Comic Sans MS", 10))
         self.entry_loop.pack(side="left", pady=(0, 10))
         
@@ -75,7 +76,7 @@ class ReplicateWindow:
       
     # Events ===
     def on_move(self, x, y):
-        # Not needed for now
+        # Not needed for now, unless we figure out how to drag
         # event = {
         #     "type": "mouse_move", 
         #     "x": x, 
@@ -125,7 +126,7 @@ class ReplicateWindow:
             threading.Thread(target=self.recording_worker, daemon=True).start()
 
     def recording_worker(self):
-        self.log("🔴 Recording started...")
+        self.log("Recording started... :0")
         self.log("Press 'ESC' on your keyboard to STOP recording.")
 
         self.mouse_listener = mouse.Listener(
@@ -143,14 +144,10 @@ class ReplicateWindow:
         self.keyboard_listener.join()
         self.mouse_listener.stop()
         
-        # Stop recording if false
-        if not self.recording_allowed:
-            return
-        
-        self.log(f"⏹️ Recording stopped. Captured {len(self.recorded_events)} events.")
+        self.log(f"Recording stopped!!!!\nCaptured {len(self.recorded_events)} event(s)")
         
         total_loops = int(self.entry_loop.get())
-        self.log(f"Doing a total loop of {total_loops}")
+        self.log(f"User entered {total_loops} loop(s)")
         
         for i in range(3, -1, -1):
             self.log(f"Playback starting in {i} seconds!")
@@ -160,12 +157,15 @@ class ReplicateWindow:
         
     # Playback ===
     def playback_macro(self, loops=3):
-        self.log(f"\n🚀 Starting playback! Will repeat {loops} times.")
+        # Enable the abortion escape option
+        threading.Thread(target=self.enable_abortion, daemon=True).start()
+        
+        self.log(f"\n!!! Starting playback !!! \nWill repeat {loops} time(s)")
         mouse_controller = mouse.Controller()
         keyboard_controller = keyboard.Controller()
         
         for i in range(loops):
-            self.log(f"🔄 Loop {i+1}/{loops}...")
+            self.log(f"==> Loop {i+1}/{loops}...")
             last_time = 0
             
             for event in self.recorded_events:
@@ -197,23 +197,38 @@ class ReplicateWindow:
                     except Exception as e:
                         self.log(f"Error playing key {k}: {e}")
                         
-        self.log("✅ Playback finished!")
-        
-    
+        self.log("Playback finished! :D")
+        self.already_running = False
+        self.abortion_listener.stop()
             
-    # UI Handling
+    # Emergency abortion ===
+    def enable_abortion(self):
+        self.abortion_listener = keyboard.Listener(
+            on_press=self.check_abortion)
+        self.abortion_listener.start()
+        
+    def check_abortion(self, key):
+        # Stop recording if we press the Escape key
+        if key == keyboard.Key.esc:
+            self.abortion_listener.stop()
+            self.log("ABORTING THE MISSION!!!")
+            self.close_window()
+    
+    # UI Handling ===
     def log(self, text):
         self.text_log.insert(tk.END, text + "\n")
         self.text_log.see(tk.END)
     
     def close_window(self):
-        # self.state_callback("idle")
+        # The pet is now relieved from duty :V
+        self.state_callback("idle")
         self.playback_allowed = False
+        self.already_running = False
         self.window.destroy()
     
 # --- MAIN EXECUTION ---
 if __name__ == "__main__":
     root = tk.Tk()
-    app = ReplicateWindow(root, None)
+    app = ReplicateWindow(root, lambda x : print(f"Called state callback to {x}"))
     root.mainloop()
     
