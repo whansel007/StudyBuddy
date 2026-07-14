@@ -147,7 +147,7 @@ class pet():
         self.work_menu.add_command(label="Pomodoro", command=self.open_pomodoro)
         self.work_menu.add_command(label="Transcribe Audio", command=self.open_transcribe)
         self.work_menu.add_command(label="Notes", command=self.open_notes)
-        self.work_menu.add_command(label="Replicate", command=self.open_notes)
+        self.work_menu.add_command(label="Replicate", command=self.open_replicates)
         self.pet_menu.add_cascade(label="Work", menu=self.work_menu)
 
         # Control menu
@@ -282,7 +282,7 @@ class pet():
         self.notes_window = NotesWindow(self.window, self.change_state)
     
     # REPLICATE ===
-    def open_notes(self):
+    def open_replicates(self):
         print(f"{self.name} Opening replicate window!")
         self.replicate_window = ReplicateWindow(self.window, self.change_state)
 

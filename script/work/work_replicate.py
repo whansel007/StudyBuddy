@@ -226,7 +226,7 @@ class ReplicateWindow:
         self.already_running = False
         self.window.destroy()
     
-# --- MAIN EXECUTION ---
+# Main execution
 if __name__ == "__main__":
     root = tk.Tk()
     app = ReplicateWindow(root, lambda x : print(f"Called state callback to {x}"))
