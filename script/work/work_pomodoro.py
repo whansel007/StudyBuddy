@@ -250,6 +250,8 @@ class PomodoroTimer:
         self.window.destroy()
 
     def open_settings_window(self):
+        # Looking back, this is a rather terrible way of doing it might want to refactor it into a class later XD
+        
         settings_window = tk.Toplevel(self.window)
         settings_window.title("Pomodoro Settings")
         settings_window.config(padx=20, pady=20, bg=self.YELLOW)

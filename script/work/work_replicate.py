@@ -11,7 +11,14 @@ class ReplicateWindow:
         self.state_callback = state_callback
         self.state_callback("work")
         
-        # Global list to store the recorded events
+        # Settings dictionary
+        self.settings = {
+            "drag": False,
+            "timeSensitive": True,
+            "sleepTime":0.2
+        }
+        
+        # Replication Variables 
         self.recorded_events = []
         self.start_time = None
         self.playback_allowed = False
@@ -57,6 +64,7 @@ class ReplicateWindow:
             width=5,
             font=("Comic Sans MS", 10))
         self.entry_loop.pack(side="left", pady=(0, 10))
+        self.entry_loop.insert(0,"10")
         
         self.button_start = tk.Button(
             self.window, 
@@ -66,6 +74,14 @@ class ReplicateWindow:
             font=("Comic Sans MS", 10), 
             padx=20,)
         self.button_start.pack(side="right", padx=5)
+        
+        self.button_start = tk.Button(
+            self.window, 
+            text="⚙️", 
+            command=self.open_settings, 
+            bg="#D9EB87", 
+            font=("Comic Sans MS", 10))
+        self.button_start.pack(side="right")
     
     # Time ===
     def get_elapsed_time(self):
@@ -76,27 +92,28 @@ class ReplicateWindow:
       
     # Events ===
     def on_move(self, x, y):
-        # Not needed for now, unless we figure out how to drag
-        # event = {
-        #     "type": "mouse_move", 
-        #     "x": x, 
-        #     "y": y, 
-        #     "time": self.get_elapsed_time()}
-        # self.log(event)
-        # self.recorded_events.append(event)
-        pass
+        if not self.settings["drag"]:
+            return
+        
+        event = {
+            "type": "mouse_move", 
+            "x": x, 
+            "y": y, 
+            "time": self.get_elapsed_time()}
+        self.log(str(event))
+        self.recorded_events.append(event)
 
     def on_click(self, x, y, button, pressed):
-        if pressed:
-            event = {
-                "type": "mouse_click", 
-                "x": x, 
-                "y": y, 
-                "button": str(button), 
-                "time": self.get_elapsed_time()
-            }
-            self.log(str(event))
-            self.recorded_events.append(event)
+        event = {
+           "type": "mouse_press" if pressed else "mouse_release",
+           "x": x, 
+           "y": y, 
+           "button": str(button), 
+           "time": self.get_elapsed_time()
+           }
+        self.log(str(event))
+        self.recorded_events.append(event)
+           
 
     def on_press(self, key):
         try:
@@ -175,14 +192,27 @@ class ReplicateWindow:
                     return
                 
                 # Maintain the original timing/delay between actions
-                time.sleep(max(0, event["time"] - last_time))
-                last_time = event["time"]
-                
-                if event["type"] == "mouse_click":
+                if self.settings["timeSensitive"]:
+                    time.sleep(max(0, event["time"] - last_time))
+                    last_time = event["time"]
+                else:
+                    time.sleep(self.settings["sleepTime"])
+                    
+                if event["type"] in ("mouse_press", "mouse_release"):
                     mouse_controller.position = (event["x"], event["y"])
-                    # Extract button type (e.g., Button.left)
-                    btn = mouse.Button.left if "left" in event["button"] else mouse.Button.right
-                    mouse_controller.click(btn)
+                    
+                    # Extract button type
+                    if "left" in event["button"]:
+                        btn = mouse.Button.left
+                    elif "right" in event["button"]:
+                        btn = mouse.Button.right
+                    else:
+                        btn= mouse.Button.middle
+                    
+                    if event["type"] == "mouse_press":
+                        mouse_controller.press(btn)
+                    else:
+                        mouse_controller.release(btn)
                     
                 elif event["type"] == "key_press":
                     # Handle special keys vs normal keys
@@ -225,7 +255,89 @@ class ReplicateWindow:
         self.playback_allowed = False
         self.already_running = False
         self.window.destroy()
-    
+        
+    def open_settings(self):
+        ReplicateSettingsWindow(
+            master = self.window, 
+            settings= self.settings)
+
+class ReplicateSettingsWindow:
+    def __init__(self, master, settings):
+        self.settings = settings
+        self.window = tk.Toplevel(master)
+        self.window.title("Replicate Settings")
+        self.window.config(padx=20, pady=20, bg="#f7f5dd")
+        self.window.attributes("-topmost", True)
+        self.window.protocol("WM_DELETE_WINDOW", self.close_window)
+        
+        # UI SETUP ===
+        self.label_windowTitle = tk.Label(
+            self.window, 
+            text="Replicate Settings", 
+            bg="#f7f5dd", 
+            font=("Comic Sans MS", 14, "bold"),
+            pady=10)
+        self.label_windowTitle.grid(row=0, column=0)
+        
+        self.button_save = tk.Button(
+            self.window, 
+            text="Save", 
+            command=self.save_settings, 
+            bg="#87EBB4", 
+            font=("Comic Sans MS", 10))
+        self.button_save.grid(row=0, column=1)
+        
+        # drag ==
+        self.var_drag = tk.BooleanVar(value=self.settings["drag"])
+        
+        check_drag = tk.Checkbutton(
+            self.window, 
+            text="Record mouse drag?", 
+            variable=self.var_drag,
+            bg="#f7f5dd", 
+            selectcolor="#f7f5dd",
+            font=("Comic Sans MS", 10),
+            pady=10)
+        check_drag.grid(row=1, column=0)
+ 
+            
+        # timeSensitive ==
+        self.var_timeSensitive = tk.BooleanVar(value=self.settings["timeSensitive"])
+        
+        check_timeSensitive = tk.Checkbutton(
+            self.window, 
+            text="Is time sensitive?", 
+            variable=self.var_timeSensitive,
+            bg="#f7f5dd", 
+            selectcolor="#f7f5dd",
+            font=("Comic Sans MS", 10),
+            pady=10)
+        check_timeSensitive.grid(row=1, column=1)
+        
+        # sleepTime
+        self.label_timeSensitive = tk.Label(
+            self.window, 
+            text="Time between events :", 
+            bg="#f7f5dd", 
+            font=("Comic Sans MS", 12, "bold"))
+        self.label_timeSensitive.grid(row=2, column=0)
+        
+        self.entry_loop = ttk.Entry(
+            self.window, 
+            width=5,
+            font=("Comic Sans MS", 10))
+        self.entry_loop.grid(row=2, column=1)
+        self.entry_loop.insert(0, self.settings["sleepTime"])
+        
+    def save_settings(self):
+        self.settings["drag"] = self.var_drag.get()
+        self.settings["timeSensitive"] = self.var_timeSensitive.get()
+        self.settings["sleepTime"] = float(self.entry_loop.get())
+        print(self.settings)
+        
+    def close_window(self):
+        self.window.destroy()
+
 # Main execution
 if __name__ == "__main__":
     root = tk.Tk()
