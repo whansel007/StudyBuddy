@@ -15,7 +15,8 @@ class ReplicateWindow:
         self.settings = {
             "drag": False,
             "timeSensitive": True,
-            "sleepTime":0.2
+            "sleepTime":0.1,
+            "startDelay":5,
         }
         
         # Replication Variables 
@@ -137,12 +138,18 @@ class ReplicateWindow:
     def start_recording(self):
         self.playback_allowed = False
         
-        if not self.already_running:
+        if not self.already_running: 
             self.playback_allowed = True
             self.already_running = True
-            threading.Thread(target=self.recording_worker, daemon=True).start()
+            threading.Thread(target=self._recording_worker, daemon=True).start()
+        else:
+            self.log("Already running!!!!\n\n")
 
-    def recording_worker(self):
+    def _recording_worker(self):
+        for i in range(self.settings["startDelay"], -1, -1):
+                self.log(f"Recording starting in {i} seconds!")
+                time.sleep(1)
+        
         self.log("Recording started... :0")
         self.log("Press 'ESC' on your keyboard to STOP recording.")
 
@@ -166,7 +173,7 @@ class ReplicateWindow:
         total_loops = int(self.entry_loop.get())
         self.log(f"User entered {total_loops} loop(s)")
         
-        for i in range(3, -1, -1):
+        for i in range(self.settings["startDelay"], -1, -1):
             self.log(f"Playback starting in {i} seconds!")
             time.sleep(1)
         
@@ -213,6 +220,9 @@ class ReplicateWindow:
                         mouse_controller.press(btn)
                     else:
                         mouse_controller.release(btn)
+                
+                elif event["type"] == "mouse_move":
+                    mouse_controller.position = (event["x"], event["y"])
                     
                 elif event["type"] == "key_press":
                     # Handle special keys vs normal keys
@@ -315,24 +325,40 @@ class ReplicateSettingsWindow:
         check_timeSensitive.grid(row=1, column=1)
         
         # sleepTime
-        self.label_timeSensitive = tk.Label(
+        self.label_sleepTime = tk.Label(
             self.window, 
             text="Time between events :", 
             bg="#f7f5dd", 
             font=("Comic Sans MS", 12, "bold"))
-        self.label_timeSensitive.grid(row=2, column=0)
+        self.label_sleepTime.grid(row=2, column=0)
         
-        self.entry_loop = ttk.Entry(
+        self.entry_sleepTime = ttk.Entry(
             self.window, 
             width=5,
             font=("Comic Sans MS", 10))
-        self.entry_loop.grid(row=2, column=1)
-        self.entry_loop.insert(0, self.settings["sleepTime"])
+        self.entry_sleepTime.grid(row=2, column=1)
+        self.entry_sleepTime.insert(0, self.settings["sleepTime"])
+        
+        # startDelay
+        self.label_startDelay = tk.Label(
+            self.window, 
+            text="Time between events :", 
+            bg="#f7f5dd", 
+            font=("Comic Sans MS", 12, "bold"))
+        self.label_startDelay.grid(row=3, column=0)
+        
+        self.entry_startDelay = ttk.Entry(
+            self.window, 
+            width=5,
+            font=("Comic Sans MS", 10))
+        self.entry_startDelay.grid(row=3, column=1)
+        self.entry_startDelay.insert(0, self.settings["startDelay"])
         
     def save_settings(self):
         self.settings["drag"] = self.var_drag.get()
         self.settings["timeSensitive"] = self.var_timeSensitive.get()
-        self.settings["sleepTime"] = float(self.entry_loop.get())
+        self.settings["sleepTime"] = float(self.entry_sleepTime.get())
+        self.settings["startDelay"] = int(self.entry_startDelay.get())
         print(self.settings)
         
     def close_window(self):
