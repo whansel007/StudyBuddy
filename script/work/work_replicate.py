@@ -114,9 +114,20 @@ class ReplicateWindow:
            }
         self.log(str(event))
         self.recorded_events.append(event)
-           
-
-    def on_press(self, key):
+    
+    def on_scroll(self, x, y, dx, dy):
+        event = {
+            "type": "mouse_scroll",
+            "x": x, 
+            "y": y, 
+            "dx": dx,
+            "dy": dy,
+            "time": self.get_elapsed_time()
+            }
+        self.log(str(event))
+        self.recorded_events.append(event)
+                
+    def on_key(self, key, type):
         try:
             key_val = key.char  # Normal keys (letters, numbers)
         except AttributeError:
@@ -127,7 +138,7 @@ class ReplicateWindow:
             return False
         
         event = {
-            "type": "key_press", 
+            "type": "key_press" if type=="p" else "key_release", 
             "key": key_val, 
             "time": self.get_elapsed_time()
         }
@@ -155,10 +166,12 @@ class ReplicateWindow:
 
         self.mouse_listener = mouse.Listener(
             on_move=self.on_move, 
-            on_click=self.on_click)
+            on_click=self.on_click,
+            on_scroll=self.on_scroll)
         
         self.keyboard_listener = keyboard.Listener(
-            on_press=self.on_press)
+            on_press= lambda key: self.on_key(key, "p"),
+            on_release= lambda key: self.on_key(key, "r"))
 
         # Start listener
         self.mouse_listener.start()
@@ -182,7 +195,7 @@ class ReplicateWindow:
     # Playback ===
     def playback_macro(self, loops=3):
         # Enable the abortion escape option
-        threading.Thread(target=self.enable_abortion, daemon=True).start()
+        threading.Thread(target=self._abortion_worker, daemon=True).start()
         
         self.log(f"\n!!! Starting playback !!! \nWill repeat {loops} time(s)")
         mouse_controller = mouse.Controller()
@@ -193,7 +206,7 @@ class ReplicateWindow:
             last_time = 0
             
             for event in self.recorded_events:
-                
+                print(event)
                 # Stop playback if false
                 if not self.playback_allowed:
                     return
@@ -206,7 +219,8 @@ class ReplicateWindow:
                     time.sleep(self.settings["sleepTime"])
                     
                 if event["type"] in ("mouse_press", "mouse_release"):
-                    mouse_controller.position = (event["x"], event["y"])
+                    if not self.settings["drag"]:
+                        mouse_controller.position = (event["x"], event["y"])
                     
                     # Extract button type
                     if "left" in event["button"]:
@@ -216,15 +230,27 @@ class ReplicateWindow:
                     else:
                         btn= mouse.Button.middle
                     
-                    if event["type"] == "mouse_press":
-                        mouse_controller.press(btn)
-                    else:
-                        mouse_controller.release(btn)
+                    try:
+                        if event["type"] == "mouse_press":
+                            print("Pressing!")
+                            mouse_controller.press(btn)
+                        else:
+                            print("Releasing")
+                            mouse_controller.release(btn)
+                    except Exception as e:
+                        print(f"Error for mouse {e}")
                 
                 elif event["type"] == "mouse_move":
-                    mouse_controller.position = (event["x"], event["y"])
+                    mx, my = mouse_controller.position
+                    dx = int(event["x"] - mx)
+                    dy = int(event["y"] - my)
+                    mouse_controller.move(dx,dy)  
                     
-                elif event["type"] == "key_press":
+                elif event["type"] == "mouse_scroll":
+                    mx, my = mouse_controller.position
+                    mouse_controller.scroll(event["dx"], event["dy"])
+                    
+                elif event["type"] in ("key_press", "key_release"):
                     # Handle special keys vs normal keys
                     if "Key." in event["key"]:
                         k = getattr(keyboard.Key, event["key"].split(".")[1])
@@ -232,8 +258,10 @@ class ReplicateWindow:
                         k = event["key"]
                     
                     try:
-                        keyboard_controller.press(k)
-                        keyboard_controller.release(k)
+                        if event["type"] == "key_press":
+                            keyboard_controller.press(k)
+                        else:
+                            keyboard_controller.release(k)
                     except Exception as e:
                         self.log(f"Error playing key {k}: {e}")
                         
@@ -242,7 +270,7 @@ class ReplicateWindow:
         self.abortion_listener.stop()
             
     # Emergency abortion ===
-    def enable_abortion(self):
+    def _abortion_worker(self):
         self.abortion_listener = keyboard.Listener(
             on_press=self.check_abortion)
         self.abortion_listener.start()
@@ -342,7 +370,7 @@ class ReplicateSettingsWindow:
         # startDelay
         self.label_startDelay = tk.Label(
             self.window, 
-            text="Time between events :", 
+            text="Start delay :", 
             bg="#f7f5dd", 
             font=("Comic Sans MS", 12, "bold"))
         self.label_startDelay.grid(row=3, column=0)
