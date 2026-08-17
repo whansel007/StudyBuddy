@@ -1,4 +1,4 @@
-# Transcribes audio offline for work and pet listening
+# Help prep notes for interview
 import tkinter as tk
 from tkinter import ttk, scrolledtext, filedialog
 import json
