@@ -3,3 +3,4 @@ requests
 sounddevice
 vosk
 SpeechRecognition
+pynput
