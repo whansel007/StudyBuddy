@@ -4,3 +4,4 @@ sounddevice
 vosk
 SpeechRecognition
 pynput
+pyaudio

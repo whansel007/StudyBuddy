@@ -6,5 +6,6 @@ Out-of-the-box Features:
 1. Pomodoro Timer
 2. Transcribe (offline mic/WAV via Vosk)
 3. Feed and Talk to pet
-4. Notes
-
+4. Help with interview notes
+5. Replicate your keyboard and mouse movements
+6. Convert powerpoint and word to docs

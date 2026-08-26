@@ -9,6 +9,7 @@ from script.work.work_pomodoro import PomodoroTimer
 from script.work.work_trancribe import TranscribeWindow
 from script.work.work_notes import NotesWindow
 from script.work.work_replicate import ReplicateWindow
+from script.work.work_convert import ConvertWindow
 from script.pet.pet_llmbrain import get_ollama_response
 from script.helper.chat_ui import ChatWindow, SpeechBubble
 
@@ -147,7 +148,8 @@ class pet():
         self.work_menu.add_command(label="Pomodoro", command=self.open_pomodoro)
         self.work_menu.add_command(label="Transcribe Audio", command=self.open_transcribe)
         self.work_menu.add_command(label="Notes", command=self.open_notes)
-        self.work_menu.add_command(label="Replicate", command=self.open_replicates)
+        self.work_menu.add_command(label="Replicate", command=self.open_replicate)
+        self.work_menu.add_command(label="Convert to pdf ", command=self.open_convert)
         self.pet_menu.add_cascade(label="Work", menu=self.work_menu)
 
         # Control menu
@@ -282,9 +284,14 @@ class pet():
         self.notes_window = NotesWindow(self.window, self.change_state)
     
     # REPLICATE ===
-    def open_replicates(self):
+    def open_replicate(self):
         print(f"{self.name} Opening replicate window!")
         self.replicate_window = ReplicateWindow(self.window, self.change_state)
+    
+    # CONVERT ===
+    def open_convert(self):
+        print(f"{self.name} Opening convert window!")
+        self.replicate_window = ConvertWindow(self.window, self.change_state)
 
     # PUSH PET ===    
     def push_pet(self, direction):

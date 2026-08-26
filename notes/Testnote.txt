@@ -1,3 +1,0 @@
-{
-    "Duar ": "AAAAAAAAAAAAAAAAAAaa\n"
-}

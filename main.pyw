@@ -19,7 +19,8 @@ FONT_BOLD = ("Comic Sans MS", 12, "bold")
 USER_NAME = "User"
 USER_INVPATH = str(Path("asset") / "user_inv.json")
 USER_INV = { "coin": 10,
-             "food": 5}
+             "food": 5,
+             "auto":True}
 
 NAME = "Whiskerton"
 PROMPT = f"You are a cute cat desktop pet talking to the user."
@@ -68,8 +69,10 @@ def get_convert(entry:tk.Entry, default_value, value_type:type = int):
 user_pets = []
 user_coin = 0
 user_food = 0
+user_auto = 0
 var_user_coin = None
 var_user_food = None
+var_user_auto = None
 
 
 # MAIN WINDOW ===
@@ -102,8 +105,10 @@ if not(os.path.exists(USER_INVPATH)):
 # Load User Stat
 with open(USER_INVPATH, "r", encoding="utf-8") as save_file:
     userstat = json.load(save_file)
+    user_auto = userstat["auto"]
     user_coin = userstat["coin"]
     user_food = userstat["food"]
+    var_user_auto = tk.BooleanVar(value=user_auto)
     var_user_coin = tk.StringVar(value=f"Coin : {user_coin}")
     var_user_food = tk.StringVar(value=f"Food : {user_food}")
 
@@ -594,6 +599,15 @@ button_load_pet = tk.Button(master=frame_pet, text="Load Pet!",
 button_load_pet.pack(padx=PADDING, side="left")
 
 frame_pet.pack(pady=10)
+
+# Autolaunch checkmark
+check_auto = tk.Checkbutton(
+    root, 
+    text="Auto-launch last pet?",
+    variable=var_user_auto, 
+    font=("Comic Sans MS", 10),
+    pady=10)
+check_auto.pack(pady=10)
 
 # TO DO: MAKE THIS A DIFFERENT CLASS!
 # Pet shop ===
