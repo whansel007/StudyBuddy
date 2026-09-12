@@ -1,13 +1,16 @@
 # Entry point and settings
 import tkinter as tk
-import json, os
-import getpass
+import json
+
 from tkinter import ttk, filedialog
 from pathlib import Path
+
 from script.pet.pet_class import pet
-from script.helper.sprite_handler import resize
-from script.helper.menu_ui import create_general_entry, create_animation_entry, create_color_entry
-from script.helper.picker_handler import pick_file,pick_color
+
+from script.helper.user_stat_handler import *
+from script.helper.picker_handler import *
+from script.helper.sprite_handler import *
+from script.helper.menu_ui import *
 
 # UI Constant ===
 PADDING = 6
@@ -16,11 +19,8 @@ FONT_DEFALT = ("Comic Sans MS", 10)
 FONT_BOLD = ("Comic Sans MS", 12, "bold")
 
 # Default Configs ===
+
 USER_NAME = "User"
-USER_INVPATH = str(Path("asset") / "user_inv.json")
-USER_INV = { "coin": 10,
-             "food": 5,
-             "auto":True}
 
 NAME = "Whiskerton"
 PROMPT = f"You are a cute cat desktop pet talking to the user."
@@ -64,16 +64,10 @@ def get_convert(entry:tk.Entry, default_value, value_type:type = int):
     else:
         return default_value
 
-
-# User Variables
+# User Variables ===
 user_pets = []
-user_coin = 0
-user_food = 0
-user_auto = 0
-var_user_coin = None
-var_user_food = None
-var_user_auto = None
-
+user_stat = load_stat()
+print(user_stat)
 
 # MAIN WINDOW ===
 root = tk.Tk()
@@ -96,21 +90,6 @@ frame_user, (entry_user) = create_general_entry(
     font_bold= FONT_BOLD, 
     font_default= FONT_DEFALT)
 frame_user.pack(pady=PADDING)
-
-# Create User Inv if it doesn't exist
-if not(os.path.exists(USER_INVPATH)):
-    with open(USER_INVPATH, "w",  encoding="utf-8") as save_path:
-        json.dump(USER_INV,save_path, indent=4)
-
-# Load User Stat
-with open(USER_INVPATH, "r", encoding="utf-8") as save_file:
-    userstat = json.load(save_file)
-    user_auto = userstat["auto"]
-    user_coin = userstat["coin"]
-    user_food = userstat["food"]
-    var_user_auto = tk.BooleanVar(value=user_auto)
-    var_user_coin = tk.StringVar(value=f"Coin : {user_coin}")
-    var_user_food = tk.StringVar(value=f"Food : {user_food}")
 
 # Name Entry
 frame_name, (entry_name) = create_general_entry(
@@ -451,8 +430,6 @@ def feed_pet_action():
     if user_food > 0:
         user_food -= 1
         var_user_food.set(f"Food : {user_food}")
-        with open(USER_INVPATH, "w", encoding="utf-8") as stat_file:
-            json.dump({"coin": user_coin, "food": user_food}, stat_file, indent=4)
         return True
     return False
 
@@ -460,10 +437,6 @@ def pomodoro_pet_action(coin_amount):
     global user_coin
     user_coin += coin_amount
     var_user_coin.set(f"Coin : {user_coin}")
-    with open(USER_INVPATH, "w", encoding="utf-8") as stat_file:
-            json.dump({"coin": user_coin, 
-                       "food": user_food}, stat_file, indent=4)
-
 
 
 # PET CREATION ===
@@ -486,6 +459,7 @@ def load_pet(pet_container:list):
         info_dict = json.load(load_file)
         print(info_dict)
         launch_pet(pet_container, info_dict)
+    
 
 
 def create_pet(pet_container:list):

@@ -2,10 +2,11 @@
 import tkinter as tk
 from tkinter import filedialog, colorchooser 
 
-def pick_file(result:list,
-              display:tk.Button=None,
-              window_title:str="Select file",
-              file_types:list=[("All files", "*.*"),("GIF","*.gif"),("PNG","*.png")]):
+def pick_file(
+    result:list,
+    display:tk.Button=None,
+    window_title:str="Select file",
+    file_types:list=[("All files", "*.*"),("GIF","*.gif"),("PNG","*.png")]):
     """
     Edit the result list in place to contain a list of path(s) of the file 
     """
@@ -19,8 +20,9 @@ def pick_file(result:list,
         if display is not None:
             display.set("No files selected")
 
-def pick_color(result:list, 
-               button:tk.Button=None):
+def pick_color(
+    result:list, 
+    button:tk.Button=None):
     """
     Edit the result list in place and changes the button display to that color
     """

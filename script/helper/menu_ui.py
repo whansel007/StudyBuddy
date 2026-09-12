@@ -2,14 +2,16 @@
 import tkinter as tk
 from tkinter import ttk
 
-def create_animation_entry(parent, 
-                           label_text:str, 
-                           button_command, 
-                           default_value:str=None, 
-                           default_interval:float = 0.1, 
-                           font_default:tuple=None, 
-                           font_bold:tuple = None, 
-                           default_width:tuple=None):
+def create_animation_entry(
+    parent, 
+    label_text:str, 
+    button_command, 
+    default_value:str=None, 
+    default_interval:float = 0.1, 
+    font_default:tuple=None, 
+    font_bold:tuple = None, 
+    default_width:tuple=None):
+    
     """
     Creates a frame for animation selection.
     """
@@ -59,13 +61,14 @@ def create_animation_entry(parent,
     
     return frame, paths, entry_interval
 
-def create_general_entry(parent, 
-                         label_text:str, 
-                         num_entries:int=1, 
-                         default_value:tuple = (), 
-                         font_bold:tuple=None, 
-                         font_default:tuple=None, 
-                         width_value=20):
+def create_general_entry(
+    parent, 
+    label_text:str, 
+    num_entries:int=1, 
+    default_value:tuple = (), 
+    font_bold:tuple=None, 
+    font_default:tuple=None, 
+    width_value=20):
     """
     Creates a frame with a label and a specified number of entry widgets.
     """
@@ -96,11 +99,12 @@ def create_general_entry(parent,
 
     return frame, entries
 
-def create_color_entry(parent, 
-                       label_text:str, 
-                       button_comand,
-                       font_bold:tuple=None, 
-                       font_default:tuple=None):
+def create_color_entry(
+    parent, 
+    label_text:str, 
+    button_comand,
+    font_bold:tuple=None, 
+    font_default:tuple=None):
     """
     Creates a frame for color selection and changes the color of the button to that color
     """
