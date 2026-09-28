@@ -18,7 +18,7 @@ var_user_last = None
 # Create User Stat if it doesn't exist
 print("Checking if the user stat path exist")
 if not os.path.exists(USER_STATPATH):
-    print("It doesnt")
+    print("The user stat does not exist lol")
     with open(USER_STATPATH, "w",  encoding="utf-8") as save_path:
         json.dump(DEFAULT_USER_STAT,save_path, indent=4)
 
@@ -47,11 +47,12 @@ def load_stat():
 
 # Update the use stat
 def update_stat(
-    user_stat,
     new_user_coin = None, 
     new_user_food = None, 
     new_user_auto = None,
     new_user_last = None):
+    
+    user_stat = load_stat()
     
     with open(USER_STATPATH, "w", encoding="utf-8") as stat_file:
         json.dump({

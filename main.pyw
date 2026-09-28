@@ -69,6 +69,7 @@ user_pets = []
 user_stat = load_stat()
 print(user_stat)
 
+
 # MAIN WINDOW ===
 root = tk.Tk()
 screensize = (root.winfo_screenwidth(), root.winfo_screenheight())
@@ -455,11 +456,18 @@ def load_pet(pet_container:list):
     Loads a .json file as the info dict and launches the pet with that info dict
     """
     load_path = filedialog.askopenfilename(initialdir="pets")
+    update_stat(new_user_last=load_path)
+    
     with open(load_path, "r") as load_file:
         info_dict = json.load(load_file)
         print(info_dict)
         launch_pet(pet_container, info_dict)
     
+if(user_stat["auto"]):
+    with open(user_stat["last"], "r") as load_file:
+            info_dict = json.load(load_file)
+            print(info_dict)
+            launch_pet(user_pets, info_dict)
 
 
 def create_pet(pet_container:list):
