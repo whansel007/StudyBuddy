@@ -1,4 +1,6 @@
-# User Inventory Variables
+"""
+User stat file functions, uses "/asset/user_stat.json" and creates the user stat
+"""
 from pathlib import Path
 import os
 import json
@@ -23,7 +25,10 @@ if not os.path.exists(USER_STATPATH):
         json.dump(DEFAULT_USER_STAT,save_path, indent=4)
 
 # Load User Stat
-def load_stat():
+def load_stat() -> dict:
+    """
+    Reads the user stat file and returns them as dictionary
+    """
     
     user_stat = {
         "coin" : 0,
@@ -39,10 +44,6 @@ def load_stat():
         user_stat["food"] = loaded_stat["food"]
         user_stat["last"] = loaded_stat["last"]
         
-        # var_user_auto = tk.BooleanVar(value=user_auto)
-        # var_user_coin = tk.StringVar(value=f"Coin : {user_coin}")
-        # var_user_food = tk.StringVar(value=f"Food : {user_food}")
-        
     return user_stat
 
 # Update the use stat
@@ -50,7 +51,11 @@ def update_stat(
     new_user_coin = None, 
     new_user_food = None, 
     new_user_auto = None,
-    new_user_last = None):
+    new_user_last = None) -> None:
+    
+    """
+    Loads the user_stat 
+    """
     
     user_stat = load_stat()
     

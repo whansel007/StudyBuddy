@@ -618,10 +618,6 @@ def open_shop():
     def update_inv():
         var_user_coin.set(f"Coin : {user_coin}")
         var_user_food.set(f"Food : {user_food}")
-        
-        with open(USER_INVPATH, "w", encoding="utf-8") as stat_file:
-                json.dump({"coin": user_coin, 
-                           "food": user_food}, stat_file, indent=4)
 
     def buy_food():
         global user_coin, user_food

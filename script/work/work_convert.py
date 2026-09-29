@@ -1,22 +1,27 @@
 # Transcribes audio offline for work and pet listening
 import tkinter as tk
+import tkinterdnd2 as tkdnd
 import os
 from tkinter import filedialog
+import comtypes
 import comtypes.client
+import threading
+
 
 class ConvertWindow:
     def __init__(self, master, state_callback):
         # Change state callback function
         self.state_callback = state_callback
+
+        tkdnd.TkinterDnD.require(master)
         
         self.notes = {}
         
         self.window = tk.Toplevel(master)
         self.window.title("Convert")
         self.window.config(padx=20, pady=20, bg="#f7f5dd")
-        self.window.attributes("-topmost", True)
         self.window.protocol("WM_DELETE_WINDOW", self.close_window)
-
+        
         self.paths = []
 
         # UI SETUP ===
@@ -24,15 +29,38 @@ class ConvertWindow:
             self.window, 
             text="Convert", 
             bg="#f7f5dd", 
-            font=("Comic Sans MS", 12, "bold"))
+            font=("Comic Sans MS", 12, "bold")
+        )
         self.label_windowTitle.pack(pady=(0, 10))
         
         self.label_windowSubTitle = tk.Label(
             self.window, 
             text="Convert MS PPT and Word files into PDFs", 
             bg="#f7f5dd", 
-            font=("Comic Sans MS", 10, "bold"))
+            font=("Comic Sans MS", 10, "bold")
+        )
         self.label_windowSubTitle.pack(pady=(0, 10))
+
+        self.file_count = tk.StringVar(value="No file selected")
+        
+        self.label_filePaths = tk.Label(
+            self.window, 
+            textvariable=self.file_count, 
+            bg="#f7f5dd", 
+            font=("Comic Sans MS", 10, "bold")
+        )
+        self.label_filePaths.pack(pady=(0, 10))
+        
+        self.drop_area = tk.Label(
+            self.window,
+            text="Drag ur files here :3",
+            bg="#87EBD2",
+            width=40,
+            height=10,
+            relief="groove",
+            font=("Comic Sans MS", 10, "bold")
+        )
+        self.drop_area.pack(pady=10)
         
         self.button_pickFiles = tk.Button(
             self.window,
@@ -53,14 +81,27 @@ class ConvertWindow:
             padx=20,
         ) 
         self.button_convert.pack(pady=10)
+        
+        self.drop_area.drop_target_register(tkdnd.DND_FILES)
+
+        def on_drop(event):
+            self.set_paths(self.window.tk.splitlist(event.data))
+            print(type(self.paths))
+
+        self.drop_area.dnd_bind("<<Drop>>", on_drop)
     
     # Functions ===
+    def set_paths(self, paths):
+        self.paths = paths
+        self.file_count.set(f"{len(self.paths)} files(s) selected")
+
     def pick_file(self):
-        self.paths = filedialog.askopenfilenames(
+        paths = filedialog.askopenfilenames(
             title="Pick MS PPT or Word file to convert to PDF", 
             filetypes=[("All Files" , "*.*"),
                        ("MS PPT or Word", "*.ppt *.pptx *.doc *.docx"),
                        ("MS PPT","*.ppt *pptx"),("MS Word","*.doc *docx")])
+        self.set_paths(paths)
         print(self.paths)
     
     def convert_picked(self):
@@ -68,13 +109,24 @@ class ConvertWindow:
             print("List is empty!!!")
             return
         
-        for in_path in self.paths:
-            out_path = ".".join(in_path.split(".")[:-1]) + ".pdf"
-            self.convert(
-                in_path=os.path.normpath(in_path),
-                out_path=os.path.normpath(out_path)
-            )
-        
+        threading.Thread(
+            target=self._convert_worker,
+            args=(tuple(self.paths),),
+            daemon=True,
+        ).start()
+
+    def _convert_worker(self, paths):
+        comtypes.CoInitialize()
+        try:
+            for in_path in paths:
+                out_path = os.path.splitext(in_path)[0] + ".pdf"
+                self.convert(
+                    in_path=os.path.normpath(in_path),
+                    out_path=os.path.normpath(out_path),
+                )
+        finally:
+            comtypes.CoUninitialize()
+            
     def convert(self, in_path, out_path):
         print(f"Converting {in_path}")
         
