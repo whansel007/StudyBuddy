@@ -48,22 +48,30 @@ def load_stat() -> dict:
 
 # Update the use stat
 def update_stat(
+    new_stat_file = None,
     new_user_coin = None, 
     new_user_food = None, 
     new_user_auto = None,
     new_user_last = None) -> None:
     
     """
-    Loads the user_stat 
+    Update the user_stat either by following a new file 
     """
     
     user_stat = load_stat()
     
     with open(USER_STATPATH, "w", encoding="utf-8") as stat_file:
-        json.dump({
-            "coin": new_user_coin or user_stat["coin"], 
-            "food": new_user_food or user_stat["food"],
-            "auto": new_user_auto or user_stat["auto"],
-            "last": new_user_last or user_stat["last"]}, 
-            stat_file, 
-            indent=4)
+        if(new_stat_file):
+            json.dump(
+                new_stat_file, 
+                stat_file, 
+                indent=4)
+        else:
+            json.dump({
+                "coin": new_user_coin or user_stat["coin"], 
+                "food": new_user_food or user_stat["food"],
+                "auto": new_user_auto or user_stat["auto"],
+                "last": new_user_last or user_stat["last"]}, 
+                stat_file, 
+                indent=4)
+            

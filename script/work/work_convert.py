@@ -108,7 +108,7 @@ class ConvertWindow:
         if not self.paths:
             print("List is empty!!!")
             return
-        
+        self.state_callback("work")
         threading.Thread(
             target=self._convert_worker,
             args=(tuple(self.paths),),
@@ -126,6 +126,7 @@ class ConvertWindow:
                 )
         finally:
             comtypes.CoUninitialize()
+            self.state_callback("idle")
             
     def convert(self, in_path, out_path):
         print(f"Converting {in_path}")
@@ -137,7 +138,7 @@ class ConvertWindow:
             print("This is a WORD!")
             
             word = comtypes.client.CreateObject("Word.Application")
-            word.Visible = 1
+            # word.Visible = 0
             
             doc = word.Documents.Open(in_path)
             doc.SaveAs(out_path, 17)
@@ -149,7 +150,7 @@ class ConvertWindow:
             print("This is a PPT!")
             
             ppt = comtypes.client.CreateObject("Powerpoint.Application")
-            ppt.Visible = 1
+            # ppt.Visible = 0
             
             deck = ppt.Presentations.Open(in_path)
             deck.SaveAs(out_path, 32)

@@ -77,6 +77,7 @@ root.title("Settings")
 root.config(padx=20, pady=20)
 
 def close_main():
+    update_stat()
     for pet in user_pets:
         pet.close_pet()
     root.destroy()
@@ -436,8 +437,8 @@ def feed_pet_action():
 
 def pomodoro_pet_action(coin_amount):
     global user_coin
-    user_coin += coin_amount
-    var_user_coin.set(f"Coin : {user_coin}")
+    user_stat["coin"] += coin_amount
+    # var_user_coin.set(f"Coin : {user_coin}")
 
 
 # PET CREATION ===
@@ -621,10 +622,10 @@ def open_shop():
 
     def buy_food():
         global user_coin, user_food
-        if user_coin >= food_price:
-            user_coin -= food_price
-            user_food += 1
-        update_inv()
+        if user_stat["coin"] >= food_price:
+            user_stat["coin"] -= food_price
+            user_stat["food"] += 1
+        update_stat(new_stat_file=user_stat)
     
     frame_stat = ttk.Frame(
         master=window_shop,)
