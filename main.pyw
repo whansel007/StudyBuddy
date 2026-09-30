@@ -428,9 +428,9 @@ button_settings.pack(pady=10)
 # PET FEEDBACK ACTION ===
 def feed_pet_action():
     global user_food, user_coin
-    if user_food > 0:
-        user_food -= 1
-        var_user_food.set(f"Food : {user_food}")
+    if user_stat["food"] > 0:
+        user_stat["food"] -= 1
+        # var_user_food.set(f"Food : {user_food}")
         return True
     return False
 
